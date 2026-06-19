@@ -1,159 +1,38 @@
-# Turborepo starter
+# 🪐 asaju-labs Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+아사주(asaju.com) 생태계의 모든 하위 서비스(사주큐브, 사주덱스 등)를 통합 관리하는 **Turborepo 모노레포**입니다.
 
-## Using this example
+## 🏗️ Architecture
 
-Run the following command:
+이 저장소는 역할에 따라 다음과 같이 완벽히 격리된 구조를 가집니다.
 
-```sh
-npx create-turbo@latest
+### 📱 Apps (`/apps`)
+사용자에게 직접 제공되는 프론트엔드/클라이언트 애플리케이션입니다.
+- **`sajudex-mweb`**: 사주덱스 (모바일 전용 웹 - Next.js)
+- **`sajucube-web`**: 사주큐브 (웹 프론트엔드 - Next.js)
+- **`sajudex-mobile`** *(예정)*: 앱스토어 배포용 네이티브 앱 (Expo/React Native)
+
+### ⚙️ Services (`/services`)
+사용자 화면이 없는 백그라운드 워커 및 데이터 파이프라인입니다.
+- **`sajudex-crawler`**: 위키피디아, 나무위키 등 공개 인물 데이터 수집 봇 및 정제기
+
+### 📦 Packages (`/packages`)
+앱과 서비스들이 공통으로 가져다 쓰는(import) 핵심 모듈 및 설정입니다.
+- **`saju-core`**: 🧠 핵심 비즈니스 로직 (만세력 계산식, 오행 분석 등)
+- **`db-schema`**: 🗄️ Prisma ORM 스키마 및 DB 연결 클라이언트
+- **`ui`**: 🎨 공통 디자인 시스템 (버튼, 카드 레이아웃 등)
+- **`config`**: ESLint, TSConfig 등 공통 환경 설정
+
+## 🚀 Getting Started
+
+### 1. Install Dependencies
+```bash
+# pnpm 워크스페이스를 통해 모든 앱/패키지의 의존성을 한 번에 설치합니다.
+pnpm install
 ```
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+### 2. Useful Commands (Turbo)
+루트 디렉토리에서 아래 명령어 한 줄로 하위의 모든 프로젝트를 제어할 수 있습니다.
+- `pnpm turbo run dev`: 모든 웹앱과 서비스를 개발(Dev) 모드로 동시 실행
+- `pnpm turbo run build`: 전체 프로젝트 병렬 빌드 및 캐싱
+- `pnpm turbo run lint`: 전체 코드 린트 검사
