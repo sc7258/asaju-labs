@@ -29,3 +29,14 @@
 ## 4. 참조 문서 위치 (Reference)
 기획, 아키텍처, 크롤러 설계 등에 대한 상세 히스토리는 옵시디언 볼트에 위치해 있습니다. 문맥 파악이 필요할 경우 아래 경로의 `.md` 파일들을 참고하세요.
 *   **절대 경로:** `/home/sc7258/SynologyDrive/_obsidian_vaults/intellian/20_Projects/asaju.com/architecture/`
+
+## 5. 현재 작업 컨텍스트 (Current Handoff)
+다음 세션에서 "이 프로젝트에서 뭘 하면 돼?"라고 물으면 우선 아래를 확인하세요.
+
+*   **현재 이어받을 작업:** `services/sajudex-crawler`
+*   **상세 handoff:** `services/sajudex-crawler/HANDOFF.md`
+*   **최근 완료:** `@repo/db-schema` Prisma schema 패키지, Sajudex DB 연결, Wikidata API/SPARQL 보조 수집, `latest-all.json.bz2` dump 스트리밍 raw import
+*   **다음 우선순위:** `raw_wikipedia`에서 `curated_people`로 옮기는 `transform:wikidata` 구현
+*   **먼저 확인할 명령:**
+    *   `pnpm --filter sajudex-crawler build`
+    *   `pnpm --filter sajudex-crawler dev -- db:check`

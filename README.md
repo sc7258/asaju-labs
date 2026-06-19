@@ -36,3 +36,9 @@ pnpm install
 - `pnpm turbo run dev`: 모든 웹앱과 서비스를 개발(Dev) 모드로 동시 실행
 - `pnpm turbo run build`: 전체 프로젝트 병렬 빌드 및 캐싱
 - `pnpm turbo run lint`: 전체 코드 린트 검사
+
+## 🧭 Current Handoff
+
+현재 이어받을 주요 작업은 `services/sajudex-crawler`입니다. 다음 세션에서는 [services/sajudex-crawler/HANDOFF.md](./services/sajudex-crawler/HANDOFF.md)를 먼저 확인하세요.
+
+다음 우선순위는 `raw_wikipedia`의 Wikidata raw JSON을 `curated_people`로 정제/적재하는 `transform:wikidata` 구현입니다.
