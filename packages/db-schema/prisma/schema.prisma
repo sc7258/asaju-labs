@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum CrawlSource {
+  WIKIDATA
+  NAMUWIKI
+  USER_SUBMIT
+}
+
+enum CrawlRunStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+  PARTIAL
+}
+
+enum RawProcessStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  PROCESSED_WITHOUT_BIRTH_DATE
+  FAILED_RETRYABLE
+  FAILED_PERMANENT
+}
+
+enum BirthDatePrecision {
+  UNKNOWN
+  YEAR
+  MONTH
+  DAY
+}
+
+enum BirthCalendarStatus {
+  UNKNOWN
+  SOLAR_ASSUMED
+  SOLAR_CONFIRMED
+  LUNAR_CONFIRMED
+}
+
+enum WikidataSeedStatus {
+  PENDING
+  FETCHING
+  FETCHED
+  FAILED
+  SKIPPED
+}
+
+model RawWikipedia {
+  id            Int              @id @default(autoincrement())
+  wikidataId    String           @unique @map("wikidata_id") @db.VarChar(32)
+  title         String           @db.VarChar(255)
+  language      String           @default("ko") @db.VarChar(8)
+  sourceUrl     String           @map("source_url") @db.VarChar(512)
+  rawJson       Json             @map("raw_json")
+  rawHash       String?          @map("raw_hash") @db.Char(64)
+  rawRevisionId String?          @map("raw_revision_id") @db.VarChar(64)
+  processStatus RawProcessStatus @default(PENDING) @map("process_status")
+  processError  String?          @map("process_error") @db.Text
+  attemptCount  Int              @default(0) @map("attempt_count")
+  scrapedAt     DateTime         @default(now()) @map("scraped_at")
+  lastAttemptAt DateTime?        @map("last_attempt_at")
+  processedAt   DateTime?        @map("processed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  curatedPerson      CuratedPerson?
+  wikidataPeopleSeed WikidataPeopleSeed?
+
+  @@index([processStatus, scrapedAt])
+  @@index([rawHash])
+  @@map("raw_wikipedia")
+}
+
+model WikidataPeopleSeed {
+  id             Int                @id @default(autoincrement())
+  wikidataId     String             @unique @map("wikidata_id") @db.VarChar(32)
+  label          String?            @db.VarChar(191)
+  description    String?            @db.VarChar(512)
+  birthDate      String?            @map("birth_date") @db.VarChar(32)
+  sourceQuery    String             @default("human_with_birth_date") @map("source_query") @db.VarChar(64)
+  status         WikidataSeedStatus @default(PENDING)
+  rawWikipediaId Int?               @unique @map("raw_wikipedia_id")
+  attemptCount   Int                @default(0) @map("attempt_count")
+  errorMessage   String?            @map("error_message") @db.Text
+  discoveredAt   DateTime           @default(now()) @map("discovered_at")
+  lastAttemptAt  DateTime?          @map("last_attempt_at")
+  fetchedAt      DateTime?          @map("fetched_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  rawWikipedia RawWikipedia? @relation(fields: [rawWikipediaId], references: [id], onDelete: SetNull)
+
+  @@index([status, discoveredAt])
+  @@index([lastAttemptAt])
+  @@map("wikidata_people_seeds")
+}
+
+model CuratedPerson {
+  id                     Int                 @id @default(autoincrement())
+  displayName            String              @map("display_name") @db.VarChar(191)
+  sortName               String?             @map("sort_name") @db.VarChar(191)
+  birthYear              Int?                @map("birth_year") @db.SmallInt
+  birthMonth             Int?                @map("birth_month") @db.TinyInt
+  birthDay               Int?                @map("birth_day") @db.TinyInt
+  birthPrecision         BirthDatePrecision  @default(UNKNOWN) @map("birth_precision")
+  birthCalendarStatus    BirthCalendarStatus @default(UNKNOWN) @map("birth_calendar_status")
+  deathYear              Int?                @map("death_year") @db.SmallInt
+  deathMonth             Int?                @map("death_month") @db.TinyInt
+  deathDay               Int?                @map("death_day") @db.TinyInt
+  citizenshipCountryName String?             @map("citizenship_country_name") @db.VarChar(128)
+  birthPlaceName         String?             @map("birth_place_name") @db.VarChar(191)
+  birthCountryName       String?             @map("birth_country_name") @db.VarChar(128)
+  occupationName         String?             @map("occupation_name") @db.VarChar(128)
+  source                 CrawlSource
+  sourceId               String              @map("source_id") @db.VarChar(64)
+  sourceUrl              String              @map("source_url") @db.VarChar(512)
+  rawWikipediaId         Int?                @unique @map("raw_wikipedia_id")
+  sajuYearStem           String?             @map("saju_year_stem") @db.VarChar(4)
+  sajuYearBranch         String?             @map("saju_year_branch") @db.VarChar(4)
+  sajuMonthStem          String?             @map("saju_month_stem") @db.VarChar(4)
+  sajuMonthBranch        String?             @map("saju_month_branch") @db.VarChar(4)
+  sajuDayStem            String?             @map("saju_day_stem") @db.VarChar(4)
+  sajuDayBranch          String?             @map("saju_day_branch") @db.VarChar(4)
+  sajuComputedAt         DateTime?           @map("saju_computed_at")
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  rawWikipedia RawWikipedia? @relation(fields: [rawWikipediaId], references: [id])
+
+  @@unique([source, sourceId])
+  @@index([displayName])
+  @@index([birthYear, birthMonth, birthDay])
+  @@index([sajuDayStem, sajuDayBranch])
+  @@index([sajuMonthStem, sajuMonthBranch])
+  @@index([citizenshipCountryName])
+  @@index([birthCountryName])
+  @@map("curated_people")
+}
+
+model CrawlerRun {
+  id             Int            @id @default(autoincrement())
+  source         CrawlSource
+  command        String         @db.VarChar(64)
+  status         CrawlRunStatus @default(RUNNING)
+  requestedCount Int            @default(0) @map("requested_count")
+  succeededCount Int            @default(0) @map("succeeded_count")
+  failedCount    Int            @default(0) @map("failed_count")
+  skippedCount   Int            @default(0) @map("skipped_count")
+  message        String?        @db.Text
+  startedAt      DateTime       @default(now()) @map("started_at")
+  finishedAt     DateTime?      @map("finished_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  @@index([source, status, startedAt])
+  @@map("crawler_runs")
+}

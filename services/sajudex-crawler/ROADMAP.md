@@ -3,10 +3,15 @@
 크롤러 서비스의 단기 및 장기 개발 마일스톤입니다.
 
 ## Phase 1: 위키피디아 (Wikidata) 기본 수집기
-- [ ] `packages/db-schema` 연동 및 Prisma Client 구성
-- [ ] Wikidata API를 통한 특정 인물 JSON 데이터 1건 수집 테스트
-- [ ] 수집된 데이터를 `RawWikipedia` 테이블에 Insert 하는 로직 구현
-- [ ] 인물 목록(List)을 순회하며 대량 수집하는 배치 로직 구현
+- [x] `packages/db-schema` 생성 및 Prisma schema v1 확정
+- [x] `sajudex` DB에 Prisma schema 반영
+- [x] `sajudex-crawler`에서 `@repo/db-schema` Prisma Client 연동
+- [x] Wikidata API를 통한 특정 인물 JSON 데이터 1건 수집 테스트
+- [x] 수집된 데이터를 `RawWikipedia` 테이블에 Insert 하는 로직 구현
+- [x] SPARQL 기반 Wikidata 인물 후보 discovery 구현
+- [x] 후보 queue 기반 raw 대량 수집 커맨드 구현
+- [x] JSON dump 스트리밍 전체 raw import 구현
+- [ ] 전체 후보 discovery/fetch 반복 실행 및 누락 리포트 구현
 
 ## Phase 2: 명식 파생 및 정제기 (Transformer)
 - [ ] `packages/saju-core`를 import 하여 생년월일을 사주 8글자로 변환하는 로직 작성
