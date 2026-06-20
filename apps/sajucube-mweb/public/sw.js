@@ -1,4 +1,4 @@
-const CACHE_NAME = "sajucube-shell-v2";
+const CACHE_NAME = "sajucube-shell-v3";
 const APP_SHELL = ["/", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {

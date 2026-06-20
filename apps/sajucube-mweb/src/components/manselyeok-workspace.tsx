@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ManselyeokForm } from "@repo/ui/manselyeok-form";
 import { ChasamManselyeokChartClient } from "@repo/ui/chasam-manselyeok-chart-client";
@@ -14,11 +15,16 @@ interface WorkspaceProps {
 
 type ShiftDirection = "previous" | "next";
 
-interface PreparedShift {
-  direction: ShiftDirection;
+interface PanelEntry {
   paramsString: string;
   paramsRecord: Record<string, string>;
-  nextState: ChasamManselyeokPageState;
+  pageState: ChasamManselyeokPageState;
+}
+
+interface CarouselSlots {
+  previous: PanelEntry | null;
+  current: PanelEntry;
+  next: PanelEntry | null;
 }
 
 const SLIDE_ANIMATION_MS = 280;
@@ -50,6 +56,18 @@ function getCalendarSelection(
   return "lunar";
 }
 
+function buildEntry(
+  paramsString: string,
+  paramsRecord: Record<string, string>,
+  pageState: ChasamManselyeokPageState,
+): PanelEntry {
+  return {
+    paramsString,
+    paramsRecord,
+    pageState,
+  };
+}
+
 function getChartKey(state: ChasamManselyeokPageState) {
   return [
     state.input.gender,
@@ -63,72 +81,38 @@ function getChartKey(state: ChasamManselyeokPageState) {
   ].join(":");
 }
 
-function buildPreviewStyle(
-  offset: number,
-  progress: number,
-) {
-  return {
-    transform: `translate3d(${offset}px, 0, 0) scale(${0.985 + progress * 0.015})`,
-    opacity: 0.6 + progress * 0.4,
-  };
-}
-
-function buildCurrentStyle(
-  offset: number,
-  hasPreview: boolean,
-  isPending: boolean,
-) {
-  return {
-    transform: `translate3d(${offset}px, 0, 0) scale(${hasPreview ? 0.992 : 1})`,
-    opacity: isPending ? 0.7 : 1,
-  };
-}
-
 export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentParamsKey = useMemo(() => searchParams.toString(), [searchParams]);
-  const [state, setState] = useState<ChasamManselyeokPageState>(initialState);
-  const [isPending, setIsPending] = useState(false);
+  const currentParamsRecord = useMemo(() => buildParamsRecord(searchParams), [searchParams]);
+  const initialEntry = useMemo(() => {
+    return buildEntry(currentParamsKey, currentParamsRecord, initialState);
+  }, [currentParamsKey, currentParamsRecord, initialState]);
+
+  const [slots, setSlots] = useState<CarouselSlots>({
+    previous: null,
+    current: initialEntry,
+    next: null,
+  });
   const [resolvedParamsKey, setResolvedParamsKey] = useState(currentParamsKey);
-  const [previewShift, setPreviewShift] = useState<PreparedShift | null>(null);
+  const [isPending, setIsPending] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const currentLayerRef = useRef<HTMLDivElement | null>(null);
-  const previewLayerRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const leftHintRef = useRef<HTMLDivElement | null>(null);
   const rightHintRef = useRef<HTMLDivElement | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const dragOffsetRef = useRef(0);
+  const dragFrameRef = useRef<number | null>(null);
+  const animationTimeoutRef = useRef<number | null>(null);
+  const slotRequestIdRef = useRef(0);
   const stateCacheRef = useRef(
     new Map<string, ChasamManselyeokPageState>([[currentParamsKey, initialState]]),
   );
-  const previewRequestIdRef = useRef(0);
-  const animationTimeoutRef = useRef<number | null>(null);
-  const dragFrameRef = useRef<number | null>(null);
-  const dragDirectionRef = useRef<ShiftDirection | null>(null);
-  const dragOffsetRef = useRef(0);
-
-  const currentParamsRecord = useMemo(() => {
-    return buildParamsRecord(searchParams);
-  }, [searchParams]);
-  const currentChartKey = useMemo(() => getChartKey(state), [state]);
-  const currentChartNode = useMemo(() => {
-    return (
-      <ChasamManselyeokChartClient
-        panels={state.panels}
-        inputBirthText={state.input.birthText}
-        key={currentChartKey}
-      />
-    );
-  }, [currentChartKey, state.input.birthText, state.panels]);
-
-  const clearAnimationTimeout = useCallback(() => {
-    if (animationTimeoutRef.current !== null) {
-      window.clearTimeout(animationTimeoutRef.current);
-      animationTimeoutRef.current = null;
-    }
-  }, []);
 
   const clearDragFrame = useCallback(() => {
     if (dragFrameRef.current !== null) {
@@ -137,40 +121,37 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     }
   }, []);
 
+  const clearAnimationTimeout = useCallback(() => {
+    if (animationTimeoutRef.current !== null) {
+      window.clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
+    }
+  }, []);
+
   const getViewportWidth = useCallback(() => {
     return viewportRef.current?.clientWidth ?? 360;
   }, []);
 
-  const applyDragFrame = useCallback((offset: number) => {
+  const applyTrackFrame = useCallback((offset: number) => {
+    const track = trackRef.current;
+    if (!track) {
+      return;
+    }
+
     const width = getViewportWidth();
-    const hasPreview = Boolean(previewShift);
-    const progress = hasPreview ? Math.min(Math.abs(offset) / width, 1) : 0;
+    const baseOffset = -width + offset;
+    track.style.transform = `translate3d(${baseOffset}px, 0, 0)`;
 
-    if (currentLayerRef.current) {
-      currentLayerRef.current.style.transform =
-        buildCurrentStyle(offset, hasPreview, isPending).transform;
-      currentLayerRef.current.style.opacity = String(
-        buildCurrentStyle(offset, hasPreview, isPending).opacity,
-      );
-    }
-
-    if (previewLayerRef.current && previewShift) {
-      const baseOffset = previewShift.direction === "previous" ? -width : width;
-      const previewStyle = buildPreviewStyle(baseOffset + offset, progress);
-      previewLayerRef.current.style.transform = previewStyle.transform;
-      previewLayerRef.current.style.opacity = String(previewStyle.opacity);
-    }
-
+    const progress = Math.min(Math.abs(offset) / width, 1);
     if (leftHintRef.current) {
-      leftHintRef.current.style.opacity = hasPreview ? String(progress) : "0";
+      leftHintRef.current.style.opacity = offset > 0 ? String(progress) : "0";
     }
-
     if (rightHintRef.current) {
-      rightHintRef.current.style.opacity = hasPreview ? String(progress) : "0";
+      rightHintRef.current.style.opacity = offset < 0 ? String(progress) : "0";
     }
-  }, [getViewportWidth, isPending, previewShift]);
+  }, [getViewportWidth]);
 
-  const scheduleDragFrame = useCallback((offset: number) => {
+  const scheduleTrackFrame = useCallback((offset: number) => {
     dragOffsetRef.current = offset;
     if (dragFrameRef.current !== null) {
       return;
@@ -178,9 +159,136 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
 
     dragFrameRef.current = window.requestAnimationFrame(() => {
       dragFrameRef.current = null;
-      applyDragFrame(dragOffsetRef.current);
+      applyTrackFrame(dragOffsetRef.current);
     });
-  }, [applyDragFrame]);
+  }, [applyTrackFrame]);
+
+  const setTrackTransitionEnabled = useCallback((enabled: boolean) => {
+    if (!trackRef.current) {
+      return;
+    }
+
+    trackRef.current.style.transitionProperty = enabled ? "transform" : "none";
+    trackRef.current.style.transitionDuration = enabled ? `${SLIDE_ANIMATION_MS}ms` : "0ms";
+    trackRef.current.style.transitionTimingFunction = "cubic-bezier(0.22,1,0.36,1)";
+  }, []);
+
+  const resetCarouselPosition = useCallback(() => {
+    dragOffsetRef.current = 0;
+    setTrackTransitionEnabled(false);
+    applyTrackFrame(0);
+    void trackRef.current?.offsetHeight;
+    setTrackTransitionEnabled(!isDragging);
+  }, [applyTrackFrame, isDragging, setTrackTransitionEnabled]);
+
+  const loadPanelEntry = useCallback(async (paramsString: string, paramsRecord: Record<string, string>) => {
+    const cachedState = stateCacheRef.current.get(paramsString);
+    const pageState =
+      cachedState ?? (await getChasamManselyeokPageState(paramsRecord));
+
+    if (!cachedState) {
+      stateCacheRef.current.set(paramsString, pageState);
+    }
+
+    return buildEntry(paramsString, paramsRecord, pageState);
+  }, []);
+
+  const buildShiftSeedFromEntry = useCallback((entry: PanelEntry, direction: ShiftDirection) => {
+    const calendarSelection = getCalendarSelection(entry.paramsRecord);
+    const birthText = entry.paramsRecord.birthText || entry.pageState.input.birthText;
+    const shifted = shiftBirthTextByDays({
+      birthText,
+      calendarSelection,
+      dayDelta: direction === "previous" ? -1 : 1,
+    });
+
+    if (!shifted) {
+      return null;
+    }
+
+    const nextParams = new URLSearchParams(entry.paramsString);
+    nextParams.set("birthText", shifted.birthText);
+    nextParams.set("calendarType", shifted.calendarSelection);
+    nextParams.delete("isLeapMonth");
+
+    return {
+      paramsString: nextParams.toString(),
+      paramsRecord: buildParamsRecord(nextParams),
+    };
+  }, []);
+
+  const loadNeighborEntry = useCallback(async (entry: PanelEntry, direction: ShiftDirection) => {
+    const seed = buildShiftSeedFromEntry(entry, direction);
+    if (!seed) {
+      return null;
+    }
+
+    return loadPanelEntry(seed.paramsString, seed.paramsRecord);
+  }, [buildShiftSeedFromEntry, loadPanelEntry]);
+
+  const primeNeighbors = useCallback(async (entry: PanelEntry) => {
+    const requestId = ++slotRequestIdRef.current;
+    const [previous, next] = await Promise.all([
+      loadNeighborEntry(entry, "previous"),
+      loadNeighborEntry(entry, "next"),
+    ]);
+
+    if (slotRequestIdRef.current !== requestId) {
+      return;
+    }
+
+    setSlots((current) => {
+      if (current.current.paramsString !== entry.paramsString) {
+        return current;
+      }
+
+      return {
+        previous,
+        current: entry,
+        next,
+      };
+    });
+  }, [loadNeighborEntry]);
+
+  const currentChartNode = useMemo(() => {
+    return (
+      <ChasamManselyeokChartClient
+        panels={slots.current.pageState.panels}
+        inputBirthText={slots.current.pageState.input.birthText}
+        key={getChartKey(slots.current.pageState)}
+      />
+    );
+  }, [slots.current]);
+
+  const previousChartNode = useMemo(() => {
+    if (!slots.previous) {
+      return null;
+    }
+
+    return (
+      <ChasamManselyeokChartClient
+        panels={slots.previous.pageState.panels}
+        inputBirthText={slots.previous.pageState.input.birthText}
+        key={getChartKey(slots.previous.pageState)}
+      />
+    );
+  }, [slots.previous]);
+
+  const nextChartNode = useMemo(() => {
+    if (!slots.next) {
+      return null;
+    }
+
+    return (
+      <ChasamManselyeokChartClient
+        panels={slots.next.pageState.panels}
+        inputBirthText={slots.next.pageState.input.birthText}
+        key={getChartKey(slots.next.pageState)}
+      />
+    );
+  }, [slots.next]);
+  const canShiftPrevious = Boolean(slots.previous);
+  const canShiftNext = Boolean(slots.next);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -197,147 +305,78 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   }, []);
 
   useEffect(() => {
+    setTrackTransitionEnabled(!isDragging && !isAnimating);
+  }, [isAnimating, isDragging, setTrackTransitionEnabled]);
+
+  useEffect(() => {
+    applyTrackFrame(dragOffsetRef.current);
+  }, [applyTrackFrame, slots]);
+
+  useEffect(() => {
+    if (!isPending && resolvedParamsKey === slots.current.paramsString) {
+      void primeNeighbors(slots.current);
+    }
+  }, [isPending, primeNeighbors, resolvedParamsKey, slots.current]);
+
+  useEffect(() => {
     if (currentParamsKey === resolvedParamsKey) {
       return;
     }
 
     let active = true;
-    previewRequestIdRef.current += 1;
-    dragDirectionRef.current = null;
+    slotRequestIdRef.current += 1;
     clearAnimationTimeout();
     clearDragFrame();
-    setPreviewShift(null);
     setIsDragging(false);
     setIsAnimating(false);
     dragOffsetRef.current = 0;
 
-    const cachedState = stateCacheRef.current.get(currentParamsKey);
-    if (cachedState) {
-      setState(cachedState);
-      setResolvedParamsKey(currentParamsKey);
-      setIsPending(false);
-      applyDragFrame(0);
-      return;
-    }
-
-    const computeState = async () => {
+    const loadExternalState = async () => {
       setIsPending(true);
-      const newState = await getChasamManselyeokPageState(currentParamsRecord);
-      if (active) {
-        stateCacheRef.current.set(currentParamsKey, newState);
-        setState(newState);
+      const entry = await loadPanelEntry(currentParamsKey, currentParamsRecord);
+      if (!active) {
+        return;
+      }
+
+      flushSync(() => {
+        setSlots({
+          previous: null,
+          current: entry,
+          next: null,
+        });
         setResolvedParamsKey(currentParamsKey);
         setIsPending(false);
-        dragOffsetRef.current = 0;
-      }
+      });
+
+      resetCarouselPosition();
     };
 
-    void computeState();
+    void loadExternalState();
 
     return () => {
       active = false;
     };
   }, [
-    applyDragFrame,
     clearAnimationTimeout,
     clearDragFrame,
     currentParamsKey,
     currentParamsRecord,
+    loadPanelEntry,
+    resetCarouselPosition,
     resolvedParamsKey,
   ]);
 
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isAnimating || isPending) {
-      return;
-    }
-
-    if (e.touches.length !== 1) return;
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-      time: Date.now(),
+  useEffect(() => {
+    return () => {
+      clearAnimationTimeout();
+      clearDragFrame();
     };
-    dragDirectionRef.current = null;
-  }, [isAnimating, isPending]);
-
-  const buildShiftSeed = useCallback((direction: ShiftDirection) => {
-    const calendarSelection = getCalendarSelection(currentParamsRecord);
-    const birthText = currentParamsRecord.birthText || state.input.birthText;
-    const shifted = shiftBirthTextByDays({
-      birthText,
-      calendarSelection,
-      dayDelta: direction === "previous" ? -1 : 1,
-    });
-
-    if (!shifted) {
-      return null;
-    }
-
-    const nextParams = new URLSearchParams(searchParams.toString());
-    nextParams.set("birthText", shifted.birthText);
-    nextParams.set("calendarType", shifted.calendarSelection);
-    nextParams.delete("isLeapMonth");
-
-    return {
-      direction,
-      paramsString: nextParams.toString(),
-      paramsRecord: buildParamsRecord(nextParams),
-    };
-  }, [currentParamsRecord, state.input.birthText, searchParams]);
-
-  const warmShiftCache = useCallback(async (direction: ShiftDirection) => {
-    const seed = buildShiftSeed(direction);
-    if (!seed || stateCacheRef.current.has(seed.paramsString)) {
-      return;
-    }
-
-    const nextState = await getChasamManselyeokPageState(seed.paramsRecord);
-    stateCacheRef.current.set(seed.paramsString, nextState);
-  }, [buildShiftSeed]);
-
-  const ensurePreviewShift = useCallback(async (direction: ShiftDirection) => {
-    const seed = buildShiftSeed(direction);
-    if (!seed) {
-      return null;
-    }
-
-    if (
-      previewShift &&
-      previewShift.direction === direction &&
-      previewShift.paramsString === seed.paramsString
-    ) {
-      return previewShift;
-    }
-
-    const requestId = ++previewRequestIdRef.current;
-    const cachedState = stateCacheRef.current.get(seed.paramsString);
-    const nextState =
-      cachedState ?? (await getChasamManselyeokPageState(seed.paramsRecord));
-
-    if (!cachedState) {
-      stateCacheRef.current.set(seed.paramsString, nextState);
-    }
-
-    const preparedShift = {
-      ...seed,
-      nextState,
-    } satisfies PreparedShift;
-
-    if (previewRequestIdRef.current === requestId) {
-      setPreviewShift(preparedShift);
-    }
-
-    return preparedShift;
-  }, [buildShiftSeed, previewShift]);
+  }, [clearAnimationTimeout, clearDragFrame]);
 
   const settleBackToCenter = useCallback(() => {
-    previewRequestIdRef.current += 1;
-    dragDirectionRef.current = null;
     setIsDragging(false);
 
-    if (!previewShift && dragOffsetRef.current === 0) {
+    if (dragOffsetRef.current === 0) {
       return;
     }
 
@@ -345,28 +384,26 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     clearDragFrame();
 
     if (prefersReducedMotion) {
-      setPreviewShift(null);
+      resetCarouselPosition();
       setIsAnimating(false);
-      dragOffsetRef.current = 0;
-      applyDragFrame(0);
       return;
     }
 
     setIsAnimating(true);
-    scheduleDragFrame(0);
+    setTrackTransitionEnabled(true);
+    scheduleTrackFrame(0);
 
     animationTimeoutRef.current = window.setTimeout(() => {
-      setPreviewShift(null);
       setIsAnimating(false);
-      dragOffsetRef.current = 0;
+      resetCarouselPosition();
     }, SLIDE_ANIMATION_MS);
   }, [
-    applyDragFrame,
     clearAnimationTimeout,
     clearDragFrame,
     prefersReducedMotion,
-    previewShift,
-    scheduleDragFrame,
+    resetCarouselPosition,
+    scheduleTrackFrame,
+    setTrackTransitionEnabled,
   ]);
 
   const commitShift = useCallback(async (direction: ShiftDirection) => {
@@ -374,60 +411,97 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
       return;
     }
 
-    const preparedShift = await ensurePreviewShift(direction);
-    if (!preparedShift) {
+    if (direction === "previous" && !slots.previous) {
       return;
     }
 
-    previewRequestIdRef.current += 1;
-    dragDirectionRef.current = null;
+    if (direction === "next" && !slots.next) {
+      return;
+    }
+
+    const target = direction === "previous" ? slots.previous : slots.next;
+    if (!target) {
+      return;
+    }
+
+    const futurePromise =
+      direction === "previous"
+        ? loadNeighborEntry(target, "previous")
+        : loadNeighborEntry(target, "next");
+
+    if (prefersReducedMotion) {
+      const futureNeighbor = await futurePromise;
+      flushSync(() => {
+        setSlots({
+          previous: direction === "previous" ? futureNeighbor : slots.current,
+          current: target,
+          next: direction === "previous" ? slots.current : futureNeighbor,
+        });
+        setResolvedParamsKey(target.paramsString);
+      });
+
+      resetCarouselPosition();
+      startTransition(() => {
+        router.push(`?${target.paramsString}`, { scroll: false });
+      });
+      return;
+    }
+
     clearAnimationTimeout();
     clearDragFrame();
     setIsDragging(false);
-
-    if (prefersReducedMotion) {
-      setState(preparedShift.nextState);
-      setResolvedParamsKey(preparedShift.paramsString);
-      setPreviewShift(null);
-      dragOffsetRef.current = 0;
-      applyDragFrame(0);
-      startTransition(() => {
-        router.push(`?${preparedShift.paramsString}`, { scroll: false });
-      });
-      return;
-    }
-
-    setPreviewShift(preparedShift);
     setIsAnimating(true);
+    setTrackTransitionEnabled(true);
 
-    requestAnimationFrame(() => {
-      scheduleDragFrame(
-        direction === "previous" ? getViewportWidth() : -getViewportWidth(),
-      );
-    });
+    scheduleTrackFrame(direction === "previous" ? getViewportWidth() : -getViewportWidth());
 
-    animationTimeoutRef.current = window.setTimeout(() => {
-      setState(preparedShift.nextState);
-      setResolvedParamsKey(preparedShift.paramsString);
-      setPreviewShift(null);
-      setIsAnimating(false);
-      dragOffsetRef.current = 0;
+    animationTimeoutRef.current = window.setTimeout(async () => {
+      const futureNeighbor = await futurePromise;
+
+      flushSync(() => {
+        setSlots({
+          previous: direction === "previous" ? futureNeighbor : slots.current,
+          current: target,
+          next: direction === "previous" ? slots.current : futureNeighbor,
+        });
+        setResolvedParamsKey(target.paramsString);
+        setIsAnimating(false);
+      });
+
+      resetCarouselPosition();
+
       startTransition(() => {
-        router.push(`?${preparedShift.paramsString}`, { scroll: false });
+        router.push(`?${target.paramsString}`, { scroll: false });
       });
     }, SLIDE_ANIMATION_MS);
   }, [
-    applyDragFrame,
     clearAnimationTimeout,
     clearDragFrame,
-    ensurePreviewShift,
     getViewportWidth,
     isAnimating,
     isPending,
+    loadNeighborEntry,
     prefersReducedMotion,
+    resetCarouselPosition,
     router,
-    scheduleDragFrame,
+    scheduleTrackFrame,
+    setTrackTransitionEnabled,
+    slots.current,
+    slots.next,
+    slots.previous,
   ]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isAnimating || isPending || e.touches.length !== 1) {
+      return;
+    }
+
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now(),
+    };
+  }, [isAnimating, isPending]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1) {
@@ -444,30 +518,40 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
       return;
     }
 
-    const direction: ShiftDirection = deltaX > 0 ? "previous" : "next";
-    const width = getViewportWidth();
-    const clampedOffset = Math.max(-width, Math.min(width, deltaX));
+    if (deltaX > 0 && !slots.previous) {
+      return;
+    }
+
+    if (deltaX < 0 && !slots.next) {
+      return;
+    }
 
     if (!isDragging) {
       setIsDragging(true);
+      setTrackTransitionEnabled(false);
     }
-    scheduleDragFrame(clampedOffset);
 
-    if (dragDirectionRef.current !== direction) {
-      dragDirectionRef.current = direction;
-      setPreviewShift((currentPreview) =>
-        currentPreview?.direction === direction ? currentPreview : null,
-      );
-      void ensurePreviewShift(direction);
-    }
-  }, [ensurePreviewShift, getViewportWidth, isAnimating, isDragging, isPending, scheduleDragFrame]);
+    const width = getViewportWidth();
+    const clampedOffset = Math.max(-width, Math.min(width, deltaX));
+    scheduleTrackFrame(clampedOffset);
+  }, [
+    getViewportWidth,
+    isAnimating,
+    isDragging,
+    isPending,
+    scheduleTrackFrame,
+    setTrackTransitionEnabled,
+    slots.next,
+    slots.previous,
+  ]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
+    if (!touchStartRef.current) {
+      return;
+    }
 
     const touchStart = touchStartRef.current;
     touchStartRef.current = null;
-    dragDirectionRef.current = null;
 
     if (e.changedTouches.length !== 1) {
       settleBackToCenter();
@@ -500,71 +584,16 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     settleBackToCenter();
   }, [commitShift, getViewportWidth, settleBackToCenter]);
 
-  useEffect(() => {
-    applyDragFrame(dragOffsetRef.current);
-  }, [applyDragFrame, previewShift, isPending]);
-
-  useEffect(() => {
-    return () => {
-      clearAnimationTimeout();
-      clearDragFrame();
-    };
-  }, [clearAnimationTimeout, clearDragFrame]);
-
-  useEffect(() => {
-    const primeNeighbors = async () => {
-      await Promise.all([
-        warmShiftCache("previous"),
-        warmShiftCache("next"),
-      ]);
-    };
-
-    if (!isPending && resolvedParamsKey === currentParamsKey) {
-      void primeNeighbors();
-    }
-  }, [currentParamsKey, isPending, resolvedParamsKey, warmShiftCache]);
-
-  const previewChartKey = previewShift ? getChartKey(previewShift.nextState) : null;
-  const previewChartNode = useMemo(() => {
-    if (!previewShift) {
-      return null;
-    }
-
-    return (
-      <ChasamManselyeokChartClient
-        panels={previewShift.nextState.panels}
-        inputBirthText={previewShift.nextState.input.birthText}
-        key={previewChartKey ?? "preview"}
-      />
-    );
-  }, [previewChartKey, previewShift]);
-  const viewportWidth = getViewportWidth();
-  const renderedOffset = dragOffsetRef.current;
-  const slideProgress = previewShift
-    ? Math.min(Math.abs(renderedOffset) / viewportWidth, 1)
-    : 0;
-  const previewBaseOffset = previewShift
-    ? previewShift.direction === "previous"
-      ? -viewportWidth
-      : viewportWidth
-    : 0;
-  const previewOffset = previewShift ? previewBaseOffset + renderedOffset : 0;
-  const motionClass = isDragging
-    ? "duration-0"
-    : "duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]";
-  const previewStyle = previewShift
-    ? buildPreviewStyle(previewOffset, slideProgress)
-    : undefined;
-  const currentStyle = buildCurrentStyle(renderedOffset, Boolean(previewShift), isPending);
-
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3 relative">
-      <ManselyeokForm input={state.input} errors={state.errors} />
-      
+      <ManselyeokForm
+        input={slots.current.pageState.input}
+        errors={slots.current.pageState.errors}
+      />
+
       <div className="relative">
-        {/* Floating Left Button */}
         <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 md:-left-10 pointer-events-none md:pointer-events-auto opacity-70 transition-opacity hover:opacity-100">
-          <div className="pointer-events-auto">
+          <div className={`pointer-events-auto ${canShiftPrevious ? "" : "opacity-35"}`}>
             <HistoryNavButton direction="previous" onClick={() => void commitShift("previous")} />
           </div>
         </div>
@@ -577,45 +606,35 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
           onTouchCancel={settleBackToCenter}
           className={`relative z-10 overflow-hidden [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
         >
-          <div className="grid">
-            {previewShift ? (
+          <div
+            ref={trackRef}
+            className="flex w-[300%] will-change-transform"
+            style={{
+              transform: "translate3d(-33.333333%,0,0)",
+            }}
+          >
+            <div className="w-1/3 flex-none pr-1.5">
               <div
-                aria-hidden="true"
-                ref={previewLayerRef}
-                className={`pointer-events-none col-start-1 row-start-1 will-change-transform transition-[transform,opacity] ${motionClass}`}
-                style={previewStyle}
-              >
-                {previewChartNode}
-              </div>
-            ) : null}
-
-            <div
-              ref={currentLayerRef}
-              className={`col-start-1 row-start-1 relative will-change-transform transition-[transform,opacity] ${motionClass}`}
-              style={currentStyle}
-            >
-              {previewShift ? (
-                <>
-                  <div
-                    ref={leftHintRef}
-                    className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white/50 to-transparent"
-                    style={{ opacity: slideProgress }}
-                  />
-                  <div
-                    ref={rightHintRef}
-                    className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white/50 to-transparent"
-                    style={{ opacity: slideProgress }}
-                  />
-                </>
-              ) : null}
+                ref={leftHintRef}
+                className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white/50 to-transparent opacity-0"
+              />
+              {previousChartNode}
+            </div>
+            <div className="relative w-1/3 flex-none px-0.5">
               {currentChartNode}
+            </div>
+            <div className="w-1/3 flex-none pl-1.5">
+              <div
+                ref={rightHintRef}
+                className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white/50 to-transparent opacity-0"
+              />
+              {nextChartNode}
             </div>
           </div>
         </div>
 
-        {/* Floating Right Button */}
         <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 md:-right-10 pointer-events-none md:pointer-events-auto opacity-70 transition-opacity hover:opacity-100">
-          <div className="pointer-events-auto">
+          <div className={`pointer-events-auto ${canShiftNext ? "" : "opacity-35"}`}>
             <HistoryNavButton direction="next" onClick={() => void commitShift("next")} />
           </div>
         </div>
