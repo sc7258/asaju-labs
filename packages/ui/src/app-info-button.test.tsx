@@ -16,4 +16,26 @@ describe("AppInfoButton", () => {
     expect(screen.getByText(versionInfo.version)).toBeInTheDocument();
     expect(screen.getByText("빌드")).toBeInTheDocument();
   });
+
+  it("팝오버 바깥을 누르면 닫힌다", () => {
+    render(<AppInfoButton />);
+
+    fireEvent.click(screen.getByLabelText("앱 정보"));
+    expect(screen.getByRole("dialog", { name: "앱 정보" })).toBeInTheDocument();
+
+    fireEvent.pointerDown(document.body);
+
+    expect(screen.queryByRole("dialog", { name: "앱 정보" })).not.toBeInTheDocument();
+  });
+
+  it("Escape 키를 누르면 닫힌다", () => {
+    render(<AppInfoButton />);
+
+    fireEvent.click(screen.getByLabelText("앱 정보"));
+    expect(screen.getByRole("dialog", { name: "앱 정보" })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: "앱 정보" })).not.toBeInTheDocument();
+  });
 });
