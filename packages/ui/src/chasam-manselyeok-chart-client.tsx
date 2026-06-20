@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { InteractiveManselyeokChart } from "./interactive-manselyeok-chart";
 import { compactBirthText } from "@repo/saju-core";
 import { useBirthTextDraft } from "@repo/saju-core";
@@ -19,7 +20,7 @@ const LAST_ACCEPTED_PANELS_BY_BIRTHTEXT = new Map<
   ChasamPanelState[] | null
 >();
 
-export function ChasamManselyeokChartClient({
+function ChasamManselyeokChartClientInner({
   panels,
   inputBirthText,
 }: {
@@ -73,3 +74,5 @@ export function ChasamManselyeokChartClient({
     </section>
   );
 }
+
+export const ChasamManselyeokChartClient = memo(ChasamManselyeokChartClientInner);

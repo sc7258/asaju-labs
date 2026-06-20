@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
     "verify": "npm run lint && npm run typecheck && npm run test",
-    "deploy:prod": "vercel deploy --prod --yes",
-    "deploy:prod:logs": "vercel deploy --prod --yes --logs"
+    "deploy:prod": "vercel deploy ../.. --prod --yes",
+    "deploy:prod:logs": "vercel deploy ../.. --prod --yes --logs"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
