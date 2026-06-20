@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sajudex - 명리학 데이터베이스 및 인연첩</title>
+    <meta name="description" content="세상의 모든 사주 데이터를 모으다. 유명인 명식 검색부터 나만의 지인 사주 관리(인연첩)까지.">
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Pretendard:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-overlay"></div>
+    
+    <nav class="navbar">
+        <div class="logo">
+            <span class="logo-icon">📖</span>
+            Sajudex
+        </div>
+        <ul class="nav-links">
+            <li><a href="../asaju-landing/index.html">Asaju 홈</a></li>
+            <li><a href="../sajucube-landing/index.html">Sajucube</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <h1 class="fade-in">운명의 기록실,<br><span class="accent-text">사주덱스</span></h1>
+            <p class="fade-in delay-1">세상의 모든 명식을 아카이빙합니다.<br>유명인의 사주를 탐구하거나, 소중한 인연들의 기록을 나만의 인연첩에 보관하세요.</p>
+        </header>
+
+        <section class="cards-container fade-in delay-2">
+            <div class="glass-card">
+                <div class="card-icon">🌍</div>
+                <h2>Public Directory</h2>
+                <p>수많은 역사적 인물과 유명인의 사주 명식, 그리고 관련 임상 데이터를 검색하고 스터디할 수 있는 오픈 데이터베이스입니다.</p>
+                <button class="btn btn-outline" onclick="alert('퍼블릭 검색 기능은 준비 중입니다.')">데이터베이스 검색</button>
+            </div>
+
+            <div class="glass-card primary-card">
+                <div class="card-icon">🔐</div>
+                <h2>Private 인연첩</h2>
+                <p>나의 가족, 친구, 동료의 사주를 그룹화하여 안전하게 저장하고 관리하세요. 운의 흐름이 바뀔 때 알림을 받을 수 있습니다.</p>
+                <button class="btn btn-filled" onclick="alert('인연첩 로컬 스토리지가 연결되지 않았습니다.')">내 인연첩 열기</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Powered by <strong>Sajucube Core</strong> Engine</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

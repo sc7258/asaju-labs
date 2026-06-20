@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sajucube - 모던 만세력 도구</title>
+    <meta name="description" content="개발자를 위한 Core API부터, 일반 사용자를 위한 아름다운 UI까지. 당신의 운명을 그려냅니다.">
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Pretendard:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cube-background">
+        <div class="cube-grid"></div>
+    </div>
+    
+    <nav class="navbar">
+        <div class="logo">
+            <span class="logo-icon">⬡</span>
+            Sajucube
+        </div>
+        <div style="display: flex; gap: 1.5rem;">
+            <a href="../sajudex-landing/index.html" class="back-link">Sajudex →</a>
+            <a href="../asaju-landing/index.html" class="back-link">← Asaju.com</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="badge">v2.0 Beta Release</div>
+            <h1 class="fade-in">정확하고 아름다운<br><span class="gradient-text">현대적 만세력</span></h1>
+            <p class="fade-in delay-1">Headless 사주 엔진 기반의 빠르고 정확한 명리 계산. <br>어떤 환경에서도 매끄럽게 동작하는 완벽한 UI를 경험하세요.</p>
+            
+            <div class="action-card fade-in delay-2 glass-panel">
+                <div class="input-group">
+                    <input type="text" placeholder="이름 (선택사항)" class="modern-input">
+                    <input type="date" class="modern-input">
+                    <select class="modern-input">
+                        <option>시간 모름</option>
+                        <option>자시 (23:30 ~ 01:30)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary pulse">명식 뽑기</button>
+            </div>
+        </section>
+
+        <section class="tech-stack fade-in delay-3">
+            <p class="subtitle">Powered By</p>
+            <div class="stack-logos">
+                <span class="stack-item">Next.js</span>
+                <span class="stack-item">TypeScript</span>
+                <span class="stack-item">Tailwind</span>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
