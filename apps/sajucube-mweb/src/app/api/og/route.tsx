@@ -5,7 +5,7 @@ import {
   type ChasamManselyeokPageState,
   type ChasamPanelKey,
   type ChasamPanelState,
-} from "@repo/saju-core-page";
+} from "@repo/saju-core";
 import type { DisplayLuckPillar, DisplayPillar } from "@repo/saju-core";
 
 export const runtime = "nodejs";

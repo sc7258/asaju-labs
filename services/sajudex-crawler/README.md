@@ -37,6 +37,15 @@ pnpm --filter sajudex-crawler dev -- extract:wikidata:pending --limit 100
 # Wikidata QID 원본 수동 수집
 pnpm --filter sajudex-crawler dev -- extract:wikidata Q76
 
+# raw -> curated 변환/적재
+pnpm --filter sajudex-crawler dev -- transform:wikidata --limit 100
+
+# discovery + extract + transform 일괄 실행
+pnpm --filter sajudex-crawler dev -- run:pipeline --limit 100
+
+# cron 스케줄 시작
+pnpm --filter sajudex-crawler dev -- schedule --limit 100
+
 # 빌드
 pnpm --filter sajudex-crawler build
 ```

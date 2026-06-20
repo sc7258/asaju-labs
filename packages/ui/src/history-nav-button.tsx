@@ -1,94 +1,38 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import {
-  shiftBirthTextByDays,
-  type CalendarSelection,
-} from "@/lib/date-navigation";
-
 interface HistoryNavButtonProps {
   direction: "previous" | "next";
+  onClick: () => void;
 }
 
-const iconButtonClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#8d8d8d] bg-[linear-gradient(180deg,#ffffff_0%,#ececec_100%)] text-stone-800 transition hover:border-[#6f6f6f] hover:bg-[linear-gradient(180deg,#ffffff_0%,#e7e7e7_100%)]";
+const floatingButtonClass =
+  "flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border border-stone-200/60 bg-white/70 text-stone-700 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all hover:bg-white/90 hover:text-stone-900 active:scale-95";
 
-function buildShiftedHref(
-  form: HTMLFormElement,
-  direction: "previous" | "next",
-) {
-  const currentUrl = new URL(window.location.href);
-  const params = new URLSearchParams(currentUrl.search);
-  const formData = new FormData(form);
-
-  for (const [key, value] of formData.entries()) {
-    if (typeof value !== "string") {
-      continue;
-    }
-
-    params.set(key, value);
-  }
-
-  const rawCalendarSelection = formData.get("calendarType");
-  const rawBirthText = formData.get("birthText");
-  const calendarSelection: CalendarSelection =
-    rawCalendarSelection === "lunar-leap"
-      ? "lunar-leap"
-      : rawCalendarSelection === "lunar"
-        ? "lunar"
-        : "solar";
-  const shifted = shiftBirthTextByDays({
-    birthText: typeof rawBirthText === "string" ? rawBirthText : "",
-    calendarSelection,
-    dayDelta: direction === "previous" ? -1 : 1,
-  });
-
-  if (!shifted) {
-    return null;
-  }
-
-  params.set("birthText", shifted.birthText);
-  params.set("calendarType", shifted.calendarSelection);
-  params.delete("isLeapMonth");
-
-  const search = params.toString();
-
-  return `${currentUrl.pathname}${search ? `?${search}` : ""}${currentUrl.hash}`;
-}
-
-export function HistoryNavButton({ direction }: HistoryNavButtonProps) {
-  const router = useRouter();
+export function HistoryNavButton({ direction, onClick }: HistoryNavButtonProps) {
   const isPrevious = direction === "previous";
   const title = isPrevious ? "전날" : "다음날";
 
   return (
     <button
       aria-label={title}
-      className={iconButtonClass}
+      className={floatingButtonClass}
       onClick={(event) => {
-        const form = event.currentTarget.form;
-
-        if (!form) {
-          return;
-        }
-
-        const nextHref = buildShiftedHref(form, direction);
-
-        if (!nextHref) {
-          return;
-        }
-
-        router.push(nextHref, { scroll: false });
+        event.preventDefault();
+        onClick();
       }}
       title={title}
       type="button"
     >
-      <span
-        aria-hidden="true"
-        className="text-[16px] font-semibold leading-none"
-        suppressHydrationWarning
-      >
-        {isPrevious ? "<" : ">"}
+      <span aria-hidden="true" suppressHydrationWarning className="flex items-center justify-center">
+        {isPrevious ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        )}
       </span>
       <span className="sr-only">{title}</span>
     </button>

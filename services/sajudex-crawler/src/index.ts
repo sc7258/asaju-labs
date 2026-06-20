@@ -4,8 +4,13 @@ import { discoverWikidataPeople } from "./pipeline/discover-wikidata-people";
 import { extractPendingWikidataSeeds } from "./pipeline/extract-pending-wikidata";
 import { extractWikidataEntities } from "./pipeline/extract-wikidata";
 import { importWikidataJsonDump } from "./pipeline/import-wikidata-json-dump";
+import { runLoggedWikidataPipeline } from "./pipeline/run-pipeline";
+import { transformPendingWikidataRawRows } from "./pipeline/transform-wikidata";
 import { RawWikipediaRepository } from "./repositories/raw-wikipedia-repository";
+import { startCrawlerSchedule } from "./scheduler/cron";
 import { WikidataPeopleSeedRepository } from "./repositories/wikidata-people-seed-repository";
+
+let shouldDisconnectPrismaOnExit = true;
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv
@@ -28,10 +33,19 @@ async function main(): Promise<void> {
     case "import:wikidata:json-dump":
       await importJsonDump(args);
       break;
+    case "transform:wikidata":
+      await transformWikidata(args);
+      break;
+    case "run:pipeline":
+      await runPipeline(args);
+      break;
+    case "schedule":
+      await schedulePipeline(args);
+      break;
     default:
       console.log("Sajudex Crawler Initialized");
       console.log(
-        "Available commands: db:check, import:wikidata:json-dump, discover:wikidata:people, extract:wikidata <qid...>, extract:wikidata:pending",
+        "Available commands: db:check, import:wikidata:json-dump, discover:wikidata:people, extract:wikidata <qid...>, extract:wikidata:pending, transform:wikidata, run:pipeline, schedule",
       );
   }
 }
@@ -147,6 +161,106 @@ async function importJsonDump(args: string[]): Promise<void> {
   }
 }
 
+async function transformWikidata(args: string[]): Promise<void> {
+  const env = loadCrawlerEnv();
+  const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
+  const result = await transformPendingWikidataRawRows(limit, env, prisma);
+
+  console.log(
+    "Wikidata transform finished. requested=" +
+      result.requestedCount +
+      ", succeeded=" +
+      result.succeededCount +
+      ", skipped=" +
+      result.skippedCount +
+      ", failed=" +
+      result.failedCount,
+  );
+
+  if (result.failedCount > 0) {
+    process.exitCode = 1;
+  }
+}
+
+async function runPipeline(args: string[]): Promise<void> {
+  const env = loadCrawlerEnv();
+  const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
+  const offset = readNumberOption(args, "--offset", 0);
+  const result = await runLoggedWikidataPipeline(
+    "run:pipeline",
+    { limit, offset },
+    env,
+    prisma,
+  );
+
+  console.log(
+    "Wikidata pipeline finished. discovery_upserted=" +
+      result.discovery.upsertedCount +
+      ", extract_succeeded=" +
+      result.extraction.succeededCount +
+      ", extract_failed=" +
+      result.extraction.failedCount +
+      ", transform_succeeded=" +
+      result.transform.succeededCount +
+      ", transform_skipped=" +
+      result.transform.skippedCount +
+      ", transform_failed=" +
+      result.transform.failedCount,
+  );
+
+  if (result.extraction.failedCount > 0 || result.transform.failedCount > 0) {
+    process.exitCode = 1;
+  }
+}
+
+async function schedulePipeline(args: string[]): Promise<void> {
+  const env = loadCrawlerEnv();
+  const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
+  const offset = readNumberOption(args, "--offset", 0);
+  const task = startCrawlerSchedule(env.crawlerCron, async () => {
+    const result = await runLoggedWikidataPipeline(
+      "schedule",
+      { limit, offset },
+      env,
+      prisma,
+    );
+
+    console.log(
+      "Scheduled Wikidata pipeline finished. discovery_upserted=" +
+        result.discovery.upsertedCount +
+        ", extract_succeeded=" +
+        result.extraction.succeededCount +
+        ", transform_succeeded=" +
+        result.transform.succeededCount,
+      );
+  });
+  shouldDisconnectPrismaOnExit = false;
+
+  console.log(
+    "Wikidata scheduler started. cron=" +
+      env.crawlerCron +
+      ", limit=" +
+      limit +
+      ", offset=" +
+      offset,
+  );
+
+  await new Promise<void>((resolve) => {
+    const stop = async () => {
+      task.stop();
+      await disconnectPrisma();
+      resolve();
+    };
+
+    process.once("SIGINT", () => {
+      void stop();
+    });
+    process.once("SIGTERM", () => {
+      void stop();
+    });
+  });
+}
+
 function readStringOption(args: string[], name: string): string {
   const index = args.indexOf(name);
   const value = index === -1 ? undefined : args[index + 1];
@@ -194,5 +308,7 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await disconnectPrisma();
+    if (shouldDisconnectPrismaOnExit) {
+      await disconnectPrisma();
+    }
   });

@@ -16,18 +16,16 @@ const AUTO_SUBMIT_TIMESTAMP_KEY = "sajucube:auto-submit-at";
 function buildAutoSubmitHref(form: HTMLFormElement) {
   const currentUrl = new URL(window.location.href);
   const targetUrl = new URL(form.action || currentUrl.toString(), currentUrl);
-  const params = new URLSearchParams();
+  const params = new URLSearchParams(currentUrl.search);
 
   for (const [key, value] of new FormData(form).entries()) {
     if (typeof value !== "string") {
       continue;
     }
-
-    params.append(key, value);
+    params.set(key, value);
   }
 
   targetUrl.search = params.toString();
-
   return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
 }
 
@@ -237,7 +235,13 @@ export function BirthTextInput({
         onFocus={() => {
           setIsFocused(true);
         }}
-        placeholder="1972 0126 1200"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+             event.preventDefault();
+             submitCurrentValue("push");
+          }
+        }}
+        placeholder="1972-01-26 12:00"
         ref={inputRef}
         spellCheck={false}
         type="text"

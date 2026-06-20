@@ -72,6 +72,8 @@ export interface DisplayYearLuck {
 }
 
 export type YearlyLuckByMajorStartAge = Record<string, DisplayYearLuck[]>;
+type CalculatedYearLuck = ReturnType<typeof calculateYearlyLuck>[number];
+type MajorLuckPillar = MajorLuckResult["pillars"][number];
 
 export interface ManselyeokViewModel {
   name: string;
@@ -486,8 +488,8 @@ function buildYearlyLuckItems(
         : startYear;
 
   return calculateYearlyLuck(birthYear, startYear, endYear)
-    .sort((left, right) => right.year - left.year)
-    .map((yearLuck) => ({
+    .sort((left: CalculatedYearLuck, right: CalculatedYearLuck) => right.year - left.year)
+    .map((yearLuck: CalculatedYearLuck) => ({
       year: yearLuck.year,
       age: yearLuck.age,
       stem: yearLuck.stem,
@@ -657,7 +659,7 @@ export async function createManselyeokViewModel(
   );
   const displayedStartAges = majorLuckSource.pillars
     .slice(0, DISPLAY_LUCK_COUNT)
-    .map((pillar) => pillar.startAge);
+    .map((pillar: MajorLuckPillar) => pillar.startAge);
   const resolvedSelectedMajorLuckStartAge = displayedStartAges.includes(
     selectedMajorLuckStartAge ?? Number.NaN,
   )
@@ -804,10 +806,10 @@ export async function createManselyeokViewModel(
   if (!hasBirthTime) {
     viewModel.pillars[0] = createUnknownHourPillar();
     viewModel.skyNobleHits = formatPositionHits(
-      saju.sinsals.summary.skyNoble?.filter((position) => position !== "hour"),
+      saju.sinsals.summary.skyNoble?.filter((position: string) => position !== "hour"),
     );
     viewModel.gongmangHits = formatPositionHits(
-      saju.sinsals.summary.gongmang?.filter((position) => position !== "hour"),
+      saju.sinsals.summary.gongmang?.filter((position: string) => position !== "hour"),
     );
   }
 

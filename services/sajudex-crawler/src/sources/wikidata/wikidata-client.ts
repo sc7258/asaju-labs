@@ -50,26 +50,46 @@ export class WikidataClient {
   }
 
   async getEntity(qid: string): Promise<WikidataEntity> {
+    const entities = await this.getEntities([qid]);
     const normalizedQid = normalizeQid(qid);
+    const entity = entities[normalizedQid];
+
+    if (!entity) {
+      throw new Error("Wikidata entity not found: " + normalizedQid);
+    }
+
+    return entity;
+  }
+
+  async getEntities(qids: string[]): Promise<Record<string, WikidataEntity>> {
+    if (qids.length === 0) {
+      return {};
+    }
+
+    const normalizedQids = [...new Set(qids.map(normalizeQid))];
 
     const response = await this.http.get<WikidataEntityResponse>("", {
       params: {
         action: "wbgetentities",
-        ids: normalizedQid,
+        ids: normalizedQids.join("|"),
         languages: "ko|en",
         props: "labels|descriptions|claims|sitelinks",
         format: "json",
         origin: "*",
       },
     });
+    const entities = response.data.entities ?? {};
+    const resolvedEntities: Record<string, WikidataEntity> = {};
 
-    const entity = response.data.entities?.[normalizedQid];
+    for (const qid of normalizedQids) {
+      const entity = entities[qid];
 
-    if (!entity || entity.missing) {
-      throw new Error("Wikidata entity not found: " + normalizedQid);
+      if (entity && !entity.missing) {
+        resolvedEntities[qid] = entity;
+      }
     }
 
-    return entity;
+    return resolvedEntities;
   }
 }
 

@@ -25,11 +25,19 @@ export function formatBirthTextForDisplay(value: string | null | undefined) {
     return digits;
   }
 
-  if (digits.length <= DATE_DIGIT_LENGTH) {
-    return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+  if (digits.length <= 6) {
+    return `${digits.slice(0, 4)}-${digits.slice(4)}`;
   }
 
-  return `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`;
+  if (digits.length <= 8) {
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  }
+
+  if (digits.length <= 10) {
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)} ${digits.slice(8)}`;
+  }
+
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)} ${digits.slice(8, 10)}:${digits.slice(10)}`;
 }
 
 export function formatBirthText(
@@ -39,13 +47,13 @@ export function formatBirthText(
   hour: number | null,
   minute: number | null,
 ) {
-  const dateText = `${year} ${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
+  const dateText = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   if (hour === null || minute === null) {
     return dateText;
   }
 
-  return `${dateText} ${String(hour).padStart(2, "0")}${String(minute).padStart(2, "0")}`;
+  return `${dateText} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 export function parseBirthText(value: string | null | undefined) {

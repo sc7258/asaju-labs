@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { ChasamManselyeokChartClient } from "@repo/ui/chasam-manselyeok-chart-client";
-import { ManselyeokForm } from "@repo/ui/manselyeok-form";
 import { APP_NAME } from "@/lib/branding";
+import { Suspense } from "react";
 import {
   getChasamManselyeokPageState,
   getManselyeokPageState,
   buildManselyeokShareDescription,
   buildOgImageUrl,
 } from "@repo/saju-core";
+import { ManselyeokWorkspace } from "@/components/manselyeok-workspace";
 
 type HomeProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -48,27 +48,12 @@ export async function generateMetadata({
 export default async function Home({ searchParams }: HomeProps) {
   const params = searchParams ? await searchParams : {};
   const state = await getChasamManselyeokPageState(params);
-  const chartKey = [
-    state.input.gender,
-    state.input.calendarType,
-    state.input.isLeapMonth ? "leap" : "plain",
-    state.input.birthText,
-    state.input.showDetails ? "details" : "plain-details",
-    state.input.showLuckDividers ? "dividers" : "plain-dividers",
-    state.input.useBoardBackground ? "board-bg" : "plain-board-bg",
-    state.panels?.map((panel) => panel.key).join(":") ?? "none",
-  ].join(":");
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#f2ece2_0%,#fbfaf7_34%,#efe8dc_100%)] px-2 py-2 text-stone-900 md:px-5 md:py-6">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3">
-        <ManselyeokForm input={state.input} errors={state.errors} />
-        <ChasamManselyeokChartClient
-          panels={state.panels}
-          inputBirthText={state.input.birthText}
-          key={chartKey}
-        />
-      </div>
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#f2ece2_0%,#fbfaf7_34%,#efe8dc_100%)] px-2 py-2 text-stone-900 md:px-5 md:py-6 relative z-0">
+      <Suspense fallback={<div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3 opacity-50" />}>
+        <ManselyeokWorkspace initialState={state} />
+      </Suspense>
     </main>
   );
 }

@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { getAppVersionInfo } from "@/lib/app-version";
-
-const iconButtonClass =
-  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#8d8d8d] bg-[linear-gradient(180deg,#ffffff_0%,#ececec_100%)] text-stone-800 transition hover:border-[#6f6f6f] hover:bg-[linear-gradient(180deg,#ffffff_0%,#e7e7e7_100%)]";
+import { iconButtonClass } from "./manselyeok-form";
 
 export function AppInfoButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,20 +39,20 @@ export function AppInfoButton() {
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-20 w-[196px] rounded-md border border-[#b8afa4] bg-[#fffdf9] p-2 shadow-[0_12px_28px_rgba(64,49,27,0.14)]">
-          <p className="text-[12px] font-semibold leading-4 text-stone-900">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-[220px] rounded-2xl border border-white/50 bg-white/90 p-3 shadow-[0_12px_40px_rgba(0,0,0,0.08)] backdrop-blur-xl">
+          <p className="text-[13px] font-bold leading-5 text-stone-800">
             SajuCube 앱 정보
           </p>
-          <dl className="mt-2 space-y-2 text-[11px] leading-4 text-stone-800">
+          <dl className="mt-3 space-y-2 text-[12px] leading-4 text-stone-600">
             <div className="flex items-start justify-between gap-3">
-              <dt className="text-[#8e8478]">앱 버전</dt>
-              <dd className="text-right font-medium tabular-nums">
+              <dt className="text-stone-500">앱 버전</dt>
+              <dd className="text-right font-medium tabular-nums text-stone-700">
                 {versionInfo.version}
               </dd>
             </div>
             <div className="flex items-start justify-between gap-3">
-              <dt className="text-[#8e8478]">빌드</dt>
-              <dd className="text-right font-medium tabular-nums">
+              <dt className="text-stone-500">빌드</dt>
+              <dd className="text-right font-medium tabular-nums text-stone-700">
                 {versionInfo.buildId ?? "-"}
               </dd>
             </div>

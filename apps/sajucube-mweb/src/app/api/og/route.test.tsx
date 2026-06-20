@@ -6,7 +6,7 @@ import {
   getOrderedOgPanels,
   PreviewImage,
 } from "@/app/api/og/route";
-import { getChasamManselyeokPageState } from "@repo/saju-core-page";
+import { getChasamManselyeokPageState, type DisplayLuckPillar } from "@repo/saju-core";
 
 describe("PreviewImage", () => {
   it("renders even when birth time is omitted", async () => {
@@ -70,7 +70,7 @@ describe("PreviewImage", () => {
     const bonwonMajorLuck = getBonwonMajorLuck(state);
 
     expect(bonwonMajorLuck).toHaveLength(10);
-    expect(bonwonMajorLuck.map((item) => item.startAge)).toEqual([
+    expect(bonwonMajorLuck.map((item: DisplayLuckPillar) => item.startAge)).toEqual([
       97, 87, 77, 67, 57, 47, 37, 27, 17, 7,
     ]);
   });

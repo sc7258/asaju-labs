@@ -392,28 +392,28 @@ export function ManselyeokChart({
   const showLuckDividers = input.showLuckDividers;
   const useBoardBackground = input.useBoardBackground;
   const borderClass =
-    accentTone === "boncha" ? "border-[#6f9fd1]" : "border-[#bcc8d8]";
+    accentTone === "boncha" ? "border-blue-200/50" : "border-white/60";
   const shadowClass =
     accentTone === "boncha"
-      ? "shadow-[0_16px_38px_rgba(65,110,170,0.18)]"
-      : "shadow-[0_10px_30px_rgba(95,81,58,0.06)]";
+      ? "shadow-[0_16px_40px_rgba(65,110,170,0.15)]"
+      : "shadow-[0_8px_32px_rgba(0,0,0,0.05)]";
   const boardClass = useBoardBackground
-    ? "bg-[#fbf8f2]"
-    : "bg-[#fffefd]";
+    ? "bg-white/40 backdrop-blur-xl"
+    : "bg-white/50 backdrop-blur-xl";
   const topSectionClass = accentTone === "boncha"
-    ? "bg-[#fefeff]"
+    ? "bg-white/60"
     : useBoardBackground
-      ? "bg-[linear-gradient(180deg,#fffefb_0%,#fcfaf6_100%)]"
-      : "bg-[#fffefd]";
+      ? "bg-white/40"
+      : "bg-white/50";
   const lowerSectionClass = accentTone === "boncha"
-    ? "bg-[#fefeff]"
+    ? "bg-white/40"
     : useBoardBackground
-      ? "bg-[#fcfaf8]"
-      : "bg-[#fffefd]";
+      ? "bg-white/20"
+      : "bg-white/30";
 
   return (
     <section
-      className={`relative select-none overflow-hidden rounded-md border ${borderClass} ${shadowClass} ${boardClass}`}
+      className={`relative select-none overflow-hidden rounded-3xl border ${borderClass} ${shadowClass} ${boardClass}`}
     >
       {onToggleExpanded ? (
         <div className="absolute right-1.5 top-1.5 z-[2] sm:right-2 sm:top-2">
@@ -428,7 +428,7 @@ export function ManselyeokChart({
         className={`p-[3px] sm:p-[4px] ${topSectionClass} ${
           onToggleExpanded ? "cursor-pointer" : ""
         } ${
-          expanded && showLuckDividers ? "border-b border-[#ece6de]" : ""
+          expanded && showLuckDividers ? "border-b border-white/40" : ""
         }`}
         onClick={onToggleExpanded}
       >
@@ -470,7 +470,7 @@ export function ManselyeokChart({
         <>
           <div
             className={`px-[4px] py-[4px] ${lowerSectionClass} ${
-              showLuckDividers ? "border-b border-[#f0ebe4]" : ""
+              showLuckDividers ? "border-b border-white/30" : ""
             }`}
           >
             <DaewoonTimeline
@@ -483,7 +483,7 @@ export function ManselyeokChart({
 
           <div className={`px-[4px] py-[4px] ${lowerSectionClass}`}>
             <SewoonList
-              rangeLabel={selectedMajorLuckRangeLabel}
+              rangeLabel={selectedMajorLuckRangeLabel ?? ""}
               items={yearlyLuckItems}
               showDetails={showDetails}
               headerElement={<ChartRowHeader detail={selectedMajorLuckRangeLabel} label="세운" />}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME } from "@/lib/branding";
 import { DEFAULT_SITE_URL } from "@repo/saju-core";
+import { iconButtonClass } from "./manselyeok-form";
 
 type ShareStatus = "idle" | "shared" | "copied" | "error";
 
@@ -86,6 +87,18 @@ export function ShareLinkButton() {
       return;
     }
 
+    const birthTextFormData = form.elements.namedItem("birthText");
+    const rawBirthText =
+      birthTextFormData instanceof HTMLInputElement
+        ? birthTextFormData.value
+        : "";
+    const digitCount = rawBirthText.replace(/\D/g, "").length;
+
+    if (digitCount < 8) {
+      window.alert("생년월일 8자리가 모두 입력되어야 결과를 공유할 수 있습니다.");
+      return;
+    }
+
     const nextHref = buildFormHref(form);
     const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
@@ -133,7 +146,7 @@ export function ShareLinkButton() {
   return (
     <button
       aria-label={title}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#8d8d8d] bg-[linear-gradient(180deg,#ffffff_0%,#ececec_100%)] text-stone-800 transition hover:border-[#6f6f6f] hover:bg-[linear-gradient(180deg,#ffffff_0%,#e7e7e7_100%)]"
+      className={iconButtonClass}
       onClick={handleClick}
       title={title}
       type="button"
