@@ -20,15 +20,24 @@ const LAST_ACCEPTED_PANELS_BY_BIRTHTEXT = new Map<
   ChasamPanelState[] | null
 >();
 
+interface ChasamManselyeokChartClientProps {
+  panels: ChasamPanelState[] | null;
+  inputBirthText: string;
+  useDraftSnapshot?: boolean;
+}
+
 function ChasamManselyeokChartClientInner({
   panels,
   inputBirthText,
-}: {
-  panels: ChasamPanelState[] | null;
-  inputBirthText: string;
-}) {
+  useDraftSnapshot = true,
+}: ChasamManselyeokChartClientProps) {
   const draftBirthText = useBirthTextDraft(inputBirthText);
   const payloadBirthText = compactBirthText(inputBirthText);
+
+  if (!useDraftSnapshot) {
+    return renderPanels(panels);
+  }
+
   const isLatestPayload =
     draftBirthText.length === 0 || draftBirthText === payloadBirthText;
 
@@ -43,6 +52,10 @@ function ChasamManselyeokChartClientInner({
     ? panels
     : (LAST_ACCEPTED_PANELS_BY_BIRTHTEXT.get(draftBirthText) ?? panels);
 
+  return renderPanels(displayedPanels);
+}
+
+function renderPanels(displayedPanels: ChasamPanelState[] | null) {
   if (!displayedPanels) {
     return (
       <section className="rounded-md border border-[#8a8a8a] bg-[#f1f1ee] p-3 text-center text-xs text-[#666]">

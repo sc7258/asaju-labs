@@ -270,6 +270,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
         panels={slots.previous.pageState.panels}
         inputBirthText={slots.previous.pageState.input.birthText}
         key={getChartKey(slots.previous.pageState)}
+        useDraftSnapshot={false}
       />
     );
   }, [slots.previous]);
@@ -284,6 +285,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
         panels={slots.next.pageState.panels}
         inputBirthText={slots.next.pageState.input.birthText}
         key={getChartKey(slots.next.pageState)}
+        useDraftSnapshot={false}
       />
     );
   }, [slots.next]);
