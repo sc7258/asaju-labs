@@ -267,7 +267,7 @@ main {
     }
 }
 \n
-/* Info Sections (How to use, Features, Roadmap) */
+/* Info Sections (Features, Roadmap) */
 .info-section {
     width: 100%;
     margin-top: 6rem;
@@ -413,7 +413,6 @@ main {
     line-height: 1.6;
 }
 
-
 /* PWA Tabs & Detailed Mockups */
 .pwa-tabs-container {
     width: 100%;
@@ -467,15 +466,15 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3rem;
+    gap: 2rem;
 }
 
 @media (min-width: 768px) {
     .pwa-split {
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        gap: 4rem;
+        gap: 3rem;
     }
     .pwa-mockup {
         flex: 1;
@@ -484,6 +483,7 @@ main {
     }
     .pwa-text {
         flex: 1;
+        padding-top: 1rem;
     }
 }
 
@@ -542,33 +542,6 @@ main {
     border-radius: 4px;
     font-size: 0.9rem;
     vertical-align: middle;
-}
-
-
-/* PWA Mockups Fix */
-.pwa-split {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-}
-
-@media (min-width: 768px) {
-    .pwa-split {
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: center;
-        gap: 3rem;
-    }
-    .pwa-mockup {
-        flex: 1;
-        display: flex;
-        justify-content: flex-end;
-    }
-    .pwa-text {
-        flex: 1;
-        padding-top: 1rem;
-    }
 }
 
 /* Base Device Frame */
