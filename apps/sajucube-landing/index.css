@@ -487,39 +487,56 @@ main {
     }
 }
 
+/* PWA Grid Layout */
+.pwa-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .pwa-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 /* Premium Install Card */
 .premium-install-card {
-    padding: 3rem;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 2.5rem;
     border-radius: 30px;
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
 }
 
 .card-header {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 2rem;
+    padding-bottom: 1.5rem;
 }
 
 .os-icon {
-    font-size: 3.5rem;
+    font-size: 3rem;
     background: rgba(255, 255, 255, 0.05);
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 .os-title h3 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: var(--text-main);
     margin-bottom: 0.3rem;
     font-weight: 700;
@@ -527,59 +544,49 @@ main {
 
 .os-title p {
     color: var(--accent-cyan);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
 }
 
-/* Horizontal Step Flow */
+/* Vertical Step Flow for Grid */
 .step-flow {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    align-items: center;
-}
-
-@media (min-width: 768px) {
-    .step-flow {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-    }
+    gap: 1.5rem;
+    flex-grow: 1;
 }
 
 .flow-step {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    flex: 1;
-    max-width: 200px;
+    gap: 1.5rem;
+    position: relative;
 }
 
 .flow-icon {
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     background: var(--bg-dark);
     border: 2px solid var(--accent-blue);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: var(--text-main);
-    margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
     position: relative;
     z-index: 2;
+    flex-shrink: 0;
 }
 
 .flow-step p {
     color: var(--text-muted);
     font-size: 1.1rem;
-    line-height: 1.5;
+    line-height: 1.4;
     word-break: keep-all;
+    margin: 0;
 }
 
 .flow-step strong {
@@ -587,17 +594,20 @@ main {
 }
 
 .flow-divider {
-    width: 2px;
-    height: 40px;
-    background: linear-gradient(to bottom, var(--accent-blue), transparent);
-    opacity: 0.5;
+    display: none; /* Hide explicit dividers in vertical layout, use borders instead if needed, but spacing is cleaner */
 }
 
-@media (min-width: 768px) {
-    .flow-divider {
-        width: 100px;
-        height: 2px;
-        background: linear-gradient(to right, var(--accent-blue), transparent);
-        margin-top: 30px; /* Align with center of flow-icon */
-    }
+/* Add vertical connecting line */
+.step-flow {
+    position: relative;
+}
+.step-flow::before {
+    content: '';
+    position: absolute;
+    left: 22.5px; /* Center of the 45px icon */
+    top: 45px;
+    bottom: 45px;
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.5), transparent);
+    z-index: 1;
 }

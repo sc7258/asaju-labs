@@ -38,96 +38,57 @@
 
         <section class="info-section fade-in delay-3" style="width: 100%;">
             <h2 class="section-title">앱으로 설치하기 (PWA)</h2>
-            <div class="pwa-tabs-container">
-                <div class="pwa-tabs">
-                    <button class="pwa-tab active" data-tab="pwa-ios">🍎 iOS</button>
-                    <button class="pwa-tab" data-tab="pwa-android">🤖 Android</button>
-                    <button class="pwa-tab" data-tab="pwa-pc">💻 PC</button>
-                </div>
-                
-                <!-- iOS Tab -->
-                <div class="pwa-content active" id="pwa-ios">
-                    <div class="premium-install-card glass-panel">
-                        <div class="card-header">
-                            <span class="os-icon">🍎</span>
-                            <div class="os-title">
-                                <h3>iPhone / iPad</h3>
-                                <p>Safari 브라우저 전용</p>
-                            </div>
+            <div class="pwa-grid">
+                <!-- iOS Card -->
+                <div class="premium-install-card glass-panel">
+                    <div class="card-header">
+                        <span class="os-icon">🍎</span>
+                        <div class="os-title">
+                            <h3>iPhone / iPad</h3>
+                            <p>Safari 브라우저 전용</p>
                         </div>
-                        <div class="step-flow">
-                            <div class="flow-step">
-                                <div class="flow-icon">1</div>
-                                <p>하단 <strong>공유(⍐)</strong> 버튼 탭</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">2</div>
-                                <p><strong>홈 화면에 추가</strong> 선택</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">3</div>
-                                <p>우측 상단 <strong>추가</strong> 탭</p>
-                            </div>
+                    </div>
+                    <div class="step-flow">
+                        <div class="flow-step">
+                            <div class="flow-icon">1</div>
+                            <p>하단 <strong>공유(⍐)</strong> 버튼 탭</p>
+                        </div>
+                        <div class="flow-divider"></div>
+                        <div class="flow-step">
+                            <div class="flow-icon">2</div>
+                            <p><strong>홈 화면에 추가</strong> 선택</p>
+                        </div>
+                        <div class="flow-divider"></div>
+                        <div class="flow-step">
+                            <div class="flow-icon">3</div>
+                            <p>우측 상단 <strong>추가</strong> 탭</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Android Tab -->
-                <div class="pwa-content" id="pwa-android" style="display: none;">
-                    <div class="premium-install-card glass-panel">
-                        <div class="card-header">
-                            <span class="os-icon">🤖</span>
-                            <div class="os-title">
-                                <h3>Android (갤럭시 등)</h3>
-                                <p>Chrome / 삼성 인터넷</p>
-                            </div>
-                        </div>
-                        <div class="step-flow">
-                            <div class="flow-step">
-                                <div class="flow-icon">1</div>
-                                <p>우측 상단 <strong>메뉴(⋮)</strong> 탭</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">2</div>
-                                <p><strong>홈 화면에 추가</strong> 선택</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">3</div>
-                                <p>팝업창에서 <strong>설치</strong> 탭</p>
-                            </div>
+                <!-- Android Card -->
+                <div class="premium-install-card glass-panel">
+                    <div class="card-header">
+                        <span class="os-icon">🤖</span>
+                        <div class="os-title">
+                            <h3>Android (갤럭시 등)</h3>
+                            <p>Chrome / 삼성 인터넷</p>
                         </div>
                     </div>
-                </div>
-
-                <!-- PC Tab -->
-                <div class="pwa-content" id="pwa-pc" style="display: none;">
-                    <div class="premium-install-card glass-panel">
-                        <div class="card-header">
-                            <span class="os-icon">💻</span>
-                            <div class="os-title">
-                                <h3>PC / Mac</h3>
-                                <p>Chrome / Edge 브라우저</p>
-                            </div>
+                    <div class="step-flow">
+                        <div class="flow-step">
+                            <div class="flow-icon">1</div>
+                            <p>우측 상단 <strong>메뉴(⋮)</strong> 탭</p>
                         </div>
-                        <div class="step-flow">
-                            <div class="flow-step">
-                                <div class="flow-icon">1</div>
-                                <p>주소창 우측 끝 이동</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">2</div>
-                                <p><strong>앱 다운로드(⬇️)</strong> 클릭</p>
-                            </div>
-                            <div class="flow-divider"></div>
-                            <div class="flow-step">
-                                <div class="flow-icon">3</div>
-                                <p>팝업창에서 <strong>설치</strong> 클릭</p>
-                            </div>
+                        <div class="flow-divider"></div>
+                        <div class="flow-step">
+                            <div class="flow-icon">2</div>
+                            <p><strong>홈 화면에 추가</strong> 선택</p>
+                        </div>
+                        <div class="flow-divider"></div>
+                        <div class="flow-step">
+                            <div class="flow-icon">3</div>
+                            <p>팝업창에서 <strong>설치</strong> 탭</p>
                         </div>
                     </div>
                 </div>
