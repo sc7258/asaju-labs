@@ -4,12 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const btn = document.querySelector('.btn-primary');
     btn.addEventListener('click', () => {
-        btn.innerHTML = '계산 중...';
+        btn.innerHTML = '��� ��...';
         btn.classList.remove('pulse');
         setTimeout(() => {
-            btn.innerHTML = '명식 뽑기';
+            btn.innerHTML = '���� �̱�';
             btn.classList.add('pulse');
-            alert('만세력 기능은 개발 중입니다! (Core 로직 연동 대기중)');
+            window.location.href = 'https://sajucube.vercel.app';
         }, 1500);
     });
 });
+
+
