@@ -487,278 +487,117 @@ main {
     }
 }
 
-/* Typography for PWA Text */
-.pwa-text h3 {
-    font-size: 1.5rem;
+/* Premium Install Card */
+.premium-install-card {
+    padding: 3rem;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 30px;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 2rem;
+}
+
+.os-icon {
+    font-size: 3.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.os-title h3 {
+    font-size: 1.8rem;
     color: var(--text-main);
-    margin-bottom: 1.5rem;
-    word-break: keep-all;
+    margin-bottom: 0.3rem;
+    font-weight: 700;
 }
 
-.pwa-steps {
-    list-style: none;
-    counter-reset: pwa-counter;
+.os-title p {
+    color: var(--accent-cyan);
+    font-size: 1rem;
+    font-weight: 500;
 }
 
-.pwa-steps li {
-    position: relative;
-    padding-left: 2.5rem;
-    margin-bottom: 1.2rem;
-    color: var(--text-muted);
-    line-height: 1.6;
+/* Horizontal Step Flow */
+.step-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
 }
 
-.pwa-steps li::before {
-    counter-increment: pwa-counter;
-    content: counter(pwa-counter);
-    position: absolute;
-    left: 0;
-    top: 2px;
-    width: 24px;
-    height: 24px;
-    background: var(--accent-blue);
-    color: white;
+@media (min-width: 768px) {
+    .step-flow {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    max-width: 200px;
+}
+
+.flow-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--bg-dark);
+    border: 2px solid var(--accent-blue);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
-
-.pwa-steps strong {
-    color: var(--accent-cyan);
-}
-
-.text-sm {
-    font-size: 0.85rem;
-    opacity: 0.7;
-}
-
-.inline-icon {
-    display: inline-block;
-    background: rgba(255,255,255,0.1);
-    padding: 0.1rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    vertical-align: middle;
-}
-
-/* Base Device Frame */
-.mockup-phone {
-    width: 260px;
-    height: 520px;
-    border: 12px solid #1f2937; /* Dark slate frame */
-    border-radius: 40px;
-    position: relative;
-    background: #000;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    overflow: hidden;
-    margin: 0 auto;
-}
-
-/* Notch */
-.mockup-phone::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 25px;
-    background: #1f2937;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-    z-index: 20;
-}
-
-.mockup-screen {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-dark);
-    position: relative;
-    z-index: 10;
-}
-
-/* iOS Safari Specifics */
-.mockup-header {
-    background: #1e293b;
-    padding: 35px 15px 15px;
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    font-family: sans-serif;
-}
-
-.mockup-body {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at center, rgba(37, 99, 235, 0.1), transparent 70%);
-}
-
-.mockup-app-ui {
-    font-size: 4rem;
-    color: var(--accent-cyan);
-    opacity: 0.8;
-}
-
-.mockup-safari-bar {
-    background: #1e293b;
-    padding: 15px 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-
-.mockup-safari-bar span {
-    font-size: 1.2rem;
-    color: #94a3b8;
-}
-
-.mockup-popup {
-    position: absolute;
-    bottom: 85px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #f8fafc;
-    color: #0f172a;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    white-space: nowrap;
-    z-index: 30;
-    animation: bounce 2s infinite;
-}
-
-.mockup-popup::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 8px 8px 0;
-    border-style: solid;
-    border-color: #f8fafc transparent transparent transparent;
-}
-
-/* Android Chrome Specifics */
-.mockup-chrome-bar {
-    background: #1e293b;
-    padding: 30px 15px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.mockup-url {
-    background: #0f172a;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    flex-grow: 1;
-    margin-right: 15px;
-    font-family: sans-serif;
-}
-
-.mockup-chrome-bar .highlight-icon {
     font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.flow-step p {
     color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    word-break: keep-all;
 }
 
-.mockup-popup-android {
-    position: absolute;
-    top: 80px;
-    right: 15px;
-    background: #334155;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    color: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    z-index: 30;
-    animation: slideInRight 0.5s ease forwards;
+.flow-step strong {
+    color: var(--text-main);
 }
 
-/* PC Browser Specifics */
-.mockup-browser {
-    width: 100%;
-    max-width: 400px;
-    height: 280px;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    background: var(--bg-dark);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
-    margin: 0 auto;
+.flow-divider {
+    width: 2px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent-blue), transparent);
+    opacity: 0.5;
 }
 
-.mockup-browser-header {
-    background: #1e293b;
-    padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid #334155;
-}
-
-.mockup-browser-url {
-    background: #0f172a;
-    padding: 6px 15px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    flex-grow: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: sans-serif;
-}
-
-.mockup-app-ui.pc {
-    font-size: 2.5rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-}
-
-.mockup-popup-pc {
-    position: absolute;
-    top: 55px;
-    right: 30px;
-    background: #334155;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    color: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    z-index: 30;
-    animation: slideInDown 0.5s ease forwards;
-}
-
-/* Animations */
-@keyframes bounce {
-    0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, -10px); }
-}
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+@media (min-width: 768px) {
+    .flow-divider {
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(to right, var(--accent-blue), transparent);
+        margin-top: 30px; /* Align with center of flow-icon */
+    }
 }
