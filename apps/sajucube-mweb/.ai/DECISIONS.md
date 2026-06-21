@@ -83,3 +83,4 @@
 - Chasam workspace no longer syncs the URL for swipe navigation or inline form edits.
 - The initial URL still seeds the first render, and the share button is the only place that refreshes the browser address bar with the latest form state.
 - This avoids App Router navigations during swipe/date/gender/calendar changes, which were causing visible flicker.
+- Detailed incident notes: `docs/2026-06-21-swipe-share-issues.md`

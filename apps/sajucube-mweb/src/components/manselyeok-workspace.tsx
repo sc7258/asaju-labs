@@ -31,7 +31,7 @@ interface CarouselSlots {
   next: PanelEntry | null;
 }
 
-const SLIDE_ANIMATION_MS = 360;
+const SLIDE_ANIMATION_MS = 200;
 const SWIPE_PREVIEW_THRESHOLD_PX = 12;
 
 function buildParamsRecord(searchParams: URLSearchParams) {
@@ -181,7 +181,7 @@ export function ManselyeokWorkspace({
 
     trackRef.current.style.transitionProperty = enabled ? "transform" : "none";
     trackRef.current.style.transitionDuration = enabled ? `${SLIDE_ANIMATION_MS}ms` : "0ms";
-    trackRef.current.style.transitionTimingFunction = "cubic-bezier(0.22,1,0.36,1)";
+    trackRef.current.style.transitionTimingFunction = "linear";
   }, []);
 
   const resetCarouselPosition = useCallback(() => {
@@ -341,7 +341,6 @@ export function ManselyeokWorkspace({
   }, [slots.next]);
   const canShiftPrevious = Boolean(slots.previous);
   const canShiftNext = Boolean(slots.next);
-  const isPanelInMotion = isDragging || isAnimating;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -415,7 +414,7 @@ export function ManselyeokWorkspace({
     setTrackTransitionEnabled,
   ]);
 
-  const commitShift = useCallback(async (direction: ShiftDirection) => {
+  const commitShift = useCallback((direction: ShiftDirection) => {
     if (isAnimating || isPending) {
       return;
     }
@@ -438,19 +437,46 @@ export function ManselyeokWorkspace({
         ? loadNeighborEntry(target, "previous")
         : loadNeighborEntry(target, "next");
 
-    if (prefersReducedMotion) {
-      const futureNeighbor = await futurePromise;
+    const requestId = ++slotRequestIdRef.current;
+
+    const finalizeShift = () => {
       dragOffsetRef.current = 0;
+
       flushSync(() => {
         setSlots({
-          previous: direction === "previous" ? futureNeighbor : slots.current,
+          previous: direction === "previous" ? null : slots.current,
           current: target,
-          next: direction === "previous" ? slots.current : futureNeighbor,
+          next: direction === "previous" ? slots.current : null,
         });
         setResolvedParamsKey(target.paramsString);
+        setIsAnimating(false);
       });
 
       resetCarouselPosition();
+    };
+
+    const attachFutureNeighbor = async () => {
+      const futureNeighbor = await futurePromise;
+      if (slotRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      setSlots((currentSlots) => {
+        if (currentSlots.current.paramsString !== target.paramsString) {
+          return currentSlots;
+        }
+
+        return {
+          previous: direction === "previous" ? futureNeighbor : currentSlots.previous,
+          current: currentSlots.current,
+          next: direction === "previous" ? currentSlots.next : futureNeighbor,
+        };
+      });
+    };
+
+    if (prefersReducedMotion) {
+      finalizeShift();
+      void attachFutureNeighbor();
       return;
     }
 
@@ -463,20 +489,8 @@ export function ManselyeokWorkspace({
     scheduleTrackFrame(direction === "previous" ? getViewportWidth() : -getViewportWidth());
 
     animationTimeoutRef.current = window.setTimeout(async () => {
-      const futureNeighbor = await futurePromise;
-      dragOffsetRef.current = 0;
-
-      flushSync(() => {
-        setSlots({
-          previous: direction === "previous" ? futureNeighbor : slots.current,
-          current: target,
-          next: direction === "previous" ? slots.current : futureNeighbor,
-        });
-        setResolvedParamsKey(target.paramsString);
-        setIsAnimating(false);
-      });
-
-      resetCarouselPosition();
+      finalizeShift();
+      void attachFutureNeighbor();
     }, SLIDE_ANIMATION_MS);
   }, [
     clearAnimationTimeout,
@@ -635,7 +649,7 @@ export function ManselyeokWorkspace({
       </div>
 
       <div className="relative z-0">
-        <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-40 md:-left-10 opacity-70 transition-opacity hover:opacity-100">
+        <div className="absolute left-0 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity hover:opacity-100 md:-left-10 md:translate-x-0">
           <div className={canShiftPrevious ? "" : "opacity-35"}>
             <HistoryNavButton direction="previous" onClick={() => void commitShift("previous")} />
           </div>
@@ -663,15 +677,7 @@ export function ManselyeokWorkspace({
               />
               {previousChartNode}
             </div>
-            <div
-              className="relative w-1/3 flex-none px-0.5 transition-[opacity,transform]"
-              style={{
-                opacity: isPanelInMotion ? 0.92 : 1,
-                transform: isPanelInMotion ? "scale(0.992)" : "scale(1)",
-                transitionDuration: `${SLIDE_ANIMATION_MS}ms`,
-                transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
-              }}
-            >
+            <div className="relative w-1/3 flex-none px-0.5">
               {currentChartNode}
             </div>
             <div className="w-1/3 flex-none pl-1.5">
@@ -684,7 +690,7 @@ export function ManselyeokWorkspace({
           </div>
         </div>
 
-        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-40 md:-right-10 opacity-70 transition-opacity hover:opacity-100">
+        <div className="absolute right-0 top-1/2 z-40 translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity hover:opacity-100 md:-right-10 md:translate-x-0">
           <div className={canShiftNext ? "" : "opacity-35"}>
             <HistoryNavButton direction="next" onClick={() => void commitShift("next")} />
           </div>
