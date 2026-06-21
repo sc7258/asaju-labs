@@ -412,3 +412,350 @@ main {
     color: var(--text-muted);
     line-height: 1.6;
 }
+
+
+/* PWA Tabs & Detailed Mockups */
+.pwa-tabs-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.pwa-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.pwa-tab {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Outfit', 'Pretendard', sans-serif;
+}
+
+.pwa-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pwa-tab.active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(6, 182, 212, 0.2));
+    border-color: var(--accent-cyan);
+    color: white;
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+.pwa-content {
+    display: none;
+    padding: 3rem 2rem;
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.pwa-content.active {
+    display: block;
+}
+
+.pwa-split {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+}
+
+@media (min-width: 768px) {
+    .pwa-split {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 4rem;
+    }
+    .pwa-mockup {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .pwa-text {
+        flex: 1;
+    }
+}
+
+/* Typography for PWA Text */
+.pwa-text h3 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    word-break: keep-all;
+}
+
+.pwa-steps {
+    list-style: none;
+    counter-reset: pwa-counter;
+}
+
+.pwa-steps li {
+    position: relative;
+    padding-left: 2.5rem;
+    margin-bottom: 1.2rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.pwa-steps li::before {
+    counter-increment: pwa-counter;
+    content: counter(pwa-counter);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    background: var(--accent-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.pwa-steps strong {
+    color: var(--accent-cyan);
+}
+
+.text-sm {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.inline-icon {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+/* CSS Mockups - Abstract Devices */
+.mockup-phone {
+    width: 220px;
+    height: 450px;
+    border: 8px solid #333;
+    border-radius: 36px;
+    position: relative;
+    background: #000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.mockup-phone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 20px;
+    background: #333;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 10;
+}
+
+.mockup-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-dark);
+    position: relative;
+}
+
+.mockup-header {
+    background: rgba(255,255,255,0.05);
+    padding: 25px 10px 10px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.mockup-chrome-bar {
+    background: rgba(255,255,255,0.05);
+    padding: 25px 15px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.mockup-url {
+    background: rgba(0,0,0,0.5);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.mockup-body {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.mockup-app-ui {
+    font-size: 3rem;
+    color: var(--accent-cyan);
+    opacity: 0.5;
+}
+
+.mockup-app-ui.pc {
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mockup-safari-bar {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--glass-border);
+    padding-bottom: 25px; /* Home indicator space */
+}
+
+.highlight-icon {
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+    transform: scale(1.2);
+    animation: pulseIcon 2s infinite;
+}
+
+.mockup-popup {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid #555;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    white-space: nowrap;
+}
+
+.mockup-popup::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0;
+    border-style: solid;
+    border-color: rgba(40, 40, 40, 0.95) transparent transparent transparent;
+}
+
+.mockup-popup-android {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid #555;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* PC Mockup */
+.mockup-browser {
+    width: 320px;
+    height: 220px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+.mockup-browser-header {
+    background: #222;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #444;
+}
+
+.dots {
+    display: flex;
+    gap: 4px;
+}
+
+.dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.dots span:nth-child(1) { background: #ff5f56; }
+.dots span:nth-child(2) { background: #ffbd2e; }
+.dots span:nth-child(3) { background: #27c93f; }
+
+.mockup-browser-url {
+    background: #111;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.highlight-icon-pc {
+    font-size: 0.8rem;
+    animation: pulseIcon 2s infinite;
+}
+
+.mockup-popup-pc {
+    position: absolute;
+    top: 40px;
+    right: 30px;
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+@keyframes pulseIcon {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
