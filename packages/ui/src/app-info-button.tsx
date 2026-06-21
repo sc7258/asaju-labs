@@ -36,7 +36,7 @@ export function AppInfoButton() {
   }, [isOpen]);
 
   return (
-    <div className="relative shrink-0" ref={rootRef}>
+    <div className="relative z-20 shrink-0" ref={rootRef}>
       <button
         aria-expanded={isOpen}
         aria-label="앱 정보"

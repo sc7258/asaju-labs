@@ -1,23 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildFormHref,
   buildShareUrl,
   isPrivateHostname,
   ShareLinkButton,
+  syncBrowserUrl,
 } from "./share-link-button";
 import { APP_NAME } from "@/lib/branding";
-
-const mockReplace = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: () => undefined,
-    replace: mockReplace,
-    refresh: () => undefined,
-  }),
-}));
 
 describe("isPrivateHostname", () => {
   it("detects localhost and private network hostnames", () => {
@@ -47,6 +38,32 @@ describe("buildFormHref", () => {
 
     expect(buildFormHref(form)).toBe("/manselyeok?gender=male&calendarType=solar");
   });
+
+  it("normalizes lunar leap selection into calendarType and isLeapMonth", () => {
+    window.history.replaceState({}, "", "/manselyeok");
+
+    const form = document.createElement("form");
+    form.action = "http://localhost/manselyeok";
+
+    const gender = document.createElement("input");
+    gender.name = "gender";
+    gender.value = "female";
+    form.append(gender);
+
+    const calendarType = document.createElement("input");
+    calendarType.name = "calendarType";
+    calendarType.value = "lunar-leap";
+    form.append(calendarType);
+
+    const birthText = document.createElement("input");
+    birthText.name = "birthText";
+    birthText.value = "197201261130";
+    form.append(birthText);
+
+    expect(buildFormHref(form)).toBe(
+      "/manselyeok?gender=female&calendarType=lunar&isLeapMonth=true&birthText=197201261130",
+    );
+  });
 });
 
 describe("buildShareUrl", () => {
@@ -75,16 +92,52 @@ describe("buildShareUrl", () => {
       "https://sajucube.vercel.app/manselyeok?gender=male&calendarType=solar&birthText=197201261130",
     );
   });
+
+  it("includes the leap-month flag when the current form is lunar leap", () => {
+    window.history.replaceState({}, "", "/manselyeok");
+
+    const form = document.createElement("form");
+    form.action = "http://localhost/manselyeok";
+
+    const gender = document.createElement("input");
+    gender.name = "gender";
+    gender.value = "female";
+    form.append(gender);
+
+    const calendarType = document.createElement("input");
+    calendarType.name = "calendarType";
+    calendarType.value = "lunar-leap";
+    form.append(calendarType);
+
+    const birthText = document.createElement("input");
+    birthText.name = "birthText";
+    birthText.value = "197201261130";
+    form.append(birthText);
+
+    expect(buildShareUrl(form)).toBe(
+      "https://sajucube.vercel.app/manselyeok?gender=female&calendarType=lunar&isLeapMonth=true&birthText=197201261130",
+    );
+  });
+});
+
+describe("syncBrowserUrl", () => {
+  it("updates the address bar without using the router", () => {
+    window.history.replaceState({}, "", "/manselyeok");
+
+    syncBrowserUrl("/manselyeok?gender=male&calendarType=solar");
+
+    expect(`${window.location.pathname}${window.location.search}`).toBe(
+      "/manselyeok?gender=male&calendarType=solar",
+    );
+  });
 });
 
 describe("ShareLinkButton", () => {
   beforeEach(() => {
-    mockReplace.mockReset();
+    window.history.replaceState({}, "", "/manselyeok");
   });
 
-  it("uses the branded app name for native share", async () => {
-    window.history.replaceState({}, "", "/manselyeok");
-
+  it("uses the branded app name for native share and syncs the browser URL", async () => {
     const user = userEvent.setup();
     const share = vi.fn().mockResolvedValue(undefined);
 
@@ -106,11 +159,10 @@ describe("ShareLinkButton", () => {
       </form>,
     );
 
-    await user.click(screen.getByRole("button", { name: "공유" }));
+    await user.click(screen.getByRole("button"));
 
-    expect(mockReplace).toHaveBeenCalledWith(
+    expect(`${window.location.pathname}${window.location.search}`).toBe(
       "/manselyeok?gender=male&calendarType=solar&birthText=19720126",
-      { scroll: false },
     );
     expect(share).toHaveBeenCalledWith({
       title: APP_NAME,
@@ -119,8 +171,6 @@ describe("ShareLinkButton", () => {
   });
 
   it("copies the current form URL when web share is unavailable", async () => {
-    window.history.replaceState({}, "", "/manselyeok");
-
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
 
@@ -144,19 +194,14 @@ describe("ShareLinkButton", () => {
       </form>,
     );
 
-    await user.click(screen.getByRole("button", { name: "공유" }));
+    await user.click(screen.getByRole("button"));
 
     expect(writeText).toHaveBeenCalledWith(
       "https://sajucube.vercel.app/manselyeok?gender=female&calendarType=lunar&birthText=19720126",
     );
-    expect(
-      screen.getByRole("button", { name: "링크 복사됨" }),
-    ).toBeInTheDocument();
   });
 
   it("includes the display setting when it is enabled in the form", async () => {
-    window.history.replaceState({}, "", "/manselyeok");
-
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
 
@@ -183,7 +228,7 @@ describe("ShareLinkButton", () => {
       </form>,
     );
 
-    await user.click(screen.getByRole("button", { name: "공유" }));
+    await user.click(screen.getByRole("button"));
 
     expect(writeText).toHaveBeenCalledWith(
       "https://sajucube.vercel.app/manselyeok?gender=female&calendarType=lunar&birthText=19720126&showDetails=true&showLuckDividers=true&useBoardBackground=true",

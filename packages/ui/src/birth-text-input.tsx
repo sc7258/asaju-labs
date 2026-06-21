@@ -61,6 +61,8 @@ function markAutoSubmit(now: number) {
 interface BirthTextInputProps {
   className: string;
   defaultValue: string;
+  onSubmitValue?: (rawValue: string) => void;
+  syncUrl?: boolean;
 }
 
 type BirthTextAction =
@@ -110,6 +112,8 @@ export function getSelectionFromRawIndex(
 export function BirthTextInput({
   className,
   defaultValue,
+  onSubmitValue,
+  syncUrl = true,
 }: BirthTextInputProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -126,6 +130,17 @@ export function BirthTextInput({
   const displayValue = formatBirthTextForDisplay(rawValue);
 
   const submitCurrentValue = useCallback((mode: "push" | "replace") => {
+    lastSubmittedValueRef.current = rawValue;
+    markAutoSubmit(Date.now());
+
+    if (onSubmitValue) {
+      onSubmitValue(rawValue);
+    }
+
+    if (!syncUrl) {
+      return;
+    }
+
     const form = hiddenInputRef.current?.form;
 
     if (!form) {
@@ -136,12 +151,8 @@ export function BirthTextInput({
     const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
     if (nextHref === currentHref) {
-      lastSubmittedValueRef.current = rawValue;
       return;
     }
-
-    lastSubmittedValueRef.current = rawValue;
-    markAutoSubmit(Date.now());
 
     if (mode === "replace") {
       router.replace(nextHref, { scroll: false });
@@ -149,7 +160,7 @@ export function BirthTextInput({
     }
 
     router.push(nextHref, { scroll: false });
-  }, [rawValue, router]);
+  }, [onSubmitValue, rawValue, router, syncUrl]);
 
   useLayoutEffect(() => {
     const input = inputRef.current;

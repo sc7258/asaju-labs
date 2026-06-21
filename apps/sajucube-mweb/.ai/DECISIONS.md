@@ -78,3 +78,8 @@
 ## 2026-04-12
 - Charyeok fallback for missing lunar dates is based on nominal date closeness, not on the converted solar date distance.
 - Example: for `1973-12-31`, prefer lunar `1974-01-01` over lunar `1973-12-29` because nominal solar `1974-01-01` is closer to `1973-12-31`.
+
+## 2026-06-21
+- Chasam workspace no longer syncs the URL for swipe navigation or inline form edits.
+- The initial URL still seeds the first render, and the share button is the only place that refreshes the browser address bar with the latest form state.
+- This avoids App Router navigations during swipe/date/gender/calendar changes, which were causing visible flicker.

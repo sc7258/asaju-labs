@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { APP_NAME } from "@/lib/branding";
 import { DEFAULT_SITE_URL } from "@repo/saju-core";
 import { iconButtonClass } from "./manselyeok-form";
@@ -25,6 +24,14 @@ export function buildFormHref(form: HTMLFormElement): string {
   const currentUrl = new URL(window.location.href);
   const actionUrl = new URL(form.action || currentUrl.toString(), currentUrl);
   const targetUrl = new URL(actionUrl.pathname, currentUrl);
+  const params = buildFormSearchParams(form);
+
+  targetUrl.search = params.toString();
+
+  return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+}
+
+function buildFormSearchParams(form: HTMLFormElement) {
   const params = new URLSearchParams();
 
   for (const [key, value] of new FormData(form).entries()) {
@@ -32,12 +39,26 @@ export function buildFormHref(form: HTMLFormElement): string {
       continue;
     }
 
-    params.append(key, value);
+    if (key === "calendarType" && value === "lunar-leap") {
+      params.set("calendarType", "lunar");
+      params.set("isLeapMonth", "true");
+      continue;
+    }
+
+    params.set(key, value);
   }
 
-  targetUrl.search = params.toString();
+  return params;
+}
 
-  return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+export function syncBrowserUrl(href: string) {
+  const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  if (href === currentHref) {
+    return;
+  }
+
+  window.history.replaceState(window.history.state, "", href);
 }
 
 function buildShareUrl(form: HTMLFormElement): string {
@@ -48,15 +69,7 @@ function buildShareUrl(form: HTMLFormElement): string {
       ? new URL(process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL)
       : actionUrl;
   const targetUrl = new URL(actionUrl.pathname, shareBaseUrl);
-  const params = new URLSearchParams();
-
-  for (const [key, value] of new FormData(form).entries()) {
-    if (typeof value !== "string") {
-      continue;
-    }
-
-    params.append(key, value);
-  }
+  const params = buildFormSearchParams(form);
 
   targetUrl.search = params.toString();
 
@@ -64,7 +77,6 @@ function buildShareUrl(form: HTMLFormElement): string {
 }
 
 export function ShareLinkButton() {
-  const router = useRouter();
   const [status, setStatus] = useState<ShareStatus>("idle");
 
   useEffect(() => {
@@ -100,11 +112,7 @@ export function ShareLinkButton() {
     }
 
     const nextHref = buildFormHref(form);
-    const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-
-    if (nextHref !== currentHref) {
-      router.replace(nextHref, { scroll: false });
-    }
+    syncBrowserUrl(nextHref);
 
     const url = buildShareUrl(form);
 

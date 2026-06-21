@@ -1,16 +1,20 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { useRouter, useSearchParams } from "next/navigation";
 import { ManselyeokForm } from "@repo/ui/manselyeok-form";
 import { ChasamManselyeokChartClient } from "@repo/ui/chasam-manselyeok-chart-client";
-import { getChasamManselyeokPageState, type ChasamManselyeokPageState } from "@repo/saju-core";
+import {
+  getChasamManselyeokPageState,
+  setBirthTextDraft,
+  type ChasamManselyeokPageState,
+} from "@repo/saju-core";
 import { shiftBirthTextByDays, type CalendarSelection } from "@/lib/date-navigation";
 import { HistoryNavButton } from "@repo/ui/history-nav-button";
 
 interface WorkspaceProps {
   initialState: ChasamManselyeokPageState;
+  initialParamsRecord: Record<string, string>;
 }
 
 type ShiftDirection = "previous" | "next";
@@ -27,7 +31,7 @@ interface CarouselSlots {
   next: PanelEntry | null;
 }
 
-const SLIDE_ANIMATION_MS = 280;
+const SLIDE_ANIMATION_MS = 360;
 const SWIPE_PREVIEW_THRESHOLD_PX = 12;
 
 function buildParamsRecord(searchParams: URLSearchParams) {
@@ -37,6 +41,10 @@ function buildParamsRecord(searchParams: URLSearchParams) {
   });
 
   return record;
+}
+
+function buildParamsString(paramsRecord: Record<string, string>) {
+  return new URLSearchParams(paramsRecord).toString();
 }
 
 function getCalendarSelection(
@@ -81,21 +89,24 @@ function getChartKey(state: ChasamManselyeokPageState) {
   ].join(":");
 }
 
-export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentParamsKey = useMemo(() => searchParams.toString(), [searchParams]);
-  const currentParamsRecord = useMemo(() => buildParamsRecord(searchParams), [searchParams]);
+export function ManselyeokWorkspace({
+  initialState,
+  initialParamsRecord,
+}: WorkspaceProps) {
+  const initialParamsKey = useMemo(
+    () => buildParamsString(initialParamsRecord),
+    [initialParamsRecord],
+  );
   const initialEntry = useMemo(() => {
-    return buildEntry(currentParamsKey, currentParamsRecord, initialState);
-  }, [currentParamsKey, currentParamsRecord, initialState]);
+    return buildEntry(initialParamsKey, initialParamsRecord, initialState);
+  }, [initialParamsKey, initialParamsRecord, initialState]);
 
   const [slots, setSlots] = useState<CarouselSlots>({
     previous: null,
     current: initialEntry,
     next: null,
   });
-  const [resolvedParamsKey, setResolvedParamsKey] = useState(currentParamsKey);
+  const [resolvedParamsKey, setResolvedParamsKey] = useState(initialParamsKey);
   const [isPending, setIsPending] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -111,7 +122,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   const animationTimeoutRef = useRef<number | null>(null);
   const slotRequestIdRef = useRef(0);
   const stateCacheRef = useRef(
-    new Map<string, ChasamManselyeokPageState>([[currentParamsKey, initialState]]),
+    new Map<string, ChasamManselyeokPageState>([[initialParamsKey, initialState]]),
   );
 
   const clearDragFrame = useCallback(() => {
@@ -250,6 +261,45 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     });
   }, [loadNeighborEntry]);
 
+  const updateCurrentEntry = useCallback(async (nextParamsRecord: Record<string, string>) => {
+    const nextParamsString = buildParamsString(nextParamsRecord);
+    if (nextParamsString === resolvedParamsKey) {
+      return;
+    }
+
+    const requestId = ++slotRequestIdRef.current;
+    clearAnimationTimeout();
+    clearDragFrame();
+    setIsDragging(false);
+    setIsAnimating(false);
+    dragOffsetRef.current = 0;
+    setIsPending(true);
+
+    const entry = await loadPanelEntry(nextParamsString, nextParamsRecord);
+
+    if (slotRequestIdRef.current !== requestId) {
+      return;
+    }
+
+    flushSync(() => {
+      setSlots({
+        previous: null,
+        current: entry,
+        next: null,
+      });
+      setResolvedParamsKey(nextParamsString);
+      setIsPending(false);
+    });
+
+    resetCarouselPosition();
+  }, [
+    clearAnimationTimeout,
+    clearDragFrame,
+    loadPanelEntry,
+    resetCarouselPosition,
+    resolvedParamsKey,
+  ]);
+
   const currentChartNode = useMemo(() => {
     return (
       <ChasamManselyeokChartClient
@@ -291,6 +341,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   }, [slots.next]);
   const canShiftPrevious = Boolean(slots.previous);
   const canShiftNext = Boolean(slots.next);
+  const isPanelInMotion = isDragging || isAnimating;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -307,10 +358,10 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   }, []);
 
   useEffect(() => {
-    setTrackTransitionEnabled(!isDragging && !isAnimating);
+    setTrackTransitionEnabled(!isDragging);
   }, [isAnimating, isDragging, setTrackTransitionEnabled]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyTrackFrame(dragOffsetRef.current);
   }, [applyTrackFrame, slots]);
 
@@ -321,52 +372,8 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
   }, [isPending, primeNeighbors, resolvedParamsKey, slots.current]);
 
   useEffect(() => {
-    if (currentParamsKey === resolvedParamsKey) {
-      return;
-    }
-
-    let active = true;
-    slotRequestIdRef.current += 1;
-    clearAnimationTimeout();
-    clearDragFrame();
-    setIsDragging(false);
-    setIsAnimating(false);
-    dragOffsetRef.current = 0;
-
-    const loadExternalState = async () => {
-      setIsPending(true);
-      const entry = await loadPanelEntry(currentParamsKey, currentParamsRecord);
-      if (!active) {
-        return;
-      }
-
-      flushSync(() => {
-        setSlots({
-          previous: null,
-          current: entry,
-          next: null,
-        });
-        setResolvedParamsKey(currentParamsKey);
-        setIsPending(false);
-      });
-
-      resetCarouselPosition();
-    };
-
-    void loadExternalState();
-
-    return () => {
-      active = false;
-    };
-  }, [
-    clearAnimationTimeout,
-    clearDragFrame,
-    currentParamsKey,
-    currentParamsRecord,
-    loadPanelEntry,
-    resetCarouselPosition,
-    resolvedParamsKey,
-  ]);
+    setBirthTextDraft(slots.current.pageState.input.birthText);
+  }, [slots.current.pageState.input.birthText]);
 
   useEffect(() => {
     return () => {
@@ -433,6 +440,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
 
     if (prefersReducedMotion) {
       const futureNeighbor = await futurePromise;
+      dragOffsetRef.current = 0;
       flushSync(() => {
         setSlots({
           previous: direction === "previous" ? futureNeighbor : slots.current,
@@ -443,9 +451,6 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
       });
 
       resetCarouselPosition();
-      startTransition(() => {
-        router.push(`?${target.paramsString}`, { scroll: false });
-      });
       return;
     }
 
@@ -459,6 +464,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
 
     animationTimeoutRef.current = window.setTimeout(async () => {
       const futureNeighbor = await futurePromise;
+      dragOffsetRef.current = 0;
 
       flushSync(() => {
         setSlots({
@@ -471,10 +477,6 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
       });
 
       resetCarouselPosition();
-
-      startTransition(() => {
-        router.push(`?${target.paramsString}`, { scroll: false });
-      });
     }, SLIDE_ANIMATION_MS);
   }, [
     clearAnimationTimeout,
@@ -485,7 +487,6 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     loadNeighborEntry,
     prefersReducedMotion,
     resetCarouselPosition,
-    router,
     scheduleTrackFrame,
     setTrackTransitionEnabled,
     slots.current,
@@ -586,16 +587,56 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
     settleBackToCenter();
   }, [commitShift, getViewportWidth, settleBackToCenter]);
 
+  const handleGenderChange = useCallback((gender: string) => {
+    const nextParamsRecord = {
+      ...slots.current.paramsRecord,
+      gender,
+    };
+
+    void updateCurrentEntry(nextParamsRecord);
+  }, [slots.current.paramsRecord, updateCurrentEntry]);
+
+  const handleCalendarSelectionChange = useCallback((calendarSelection: string) => {
+    const nextParamsRecord = {
+      ...slots.current.paramsRecord,
+    };
+
+    if (calendarSelection === "lunar-leap") {
+      nextParamsRecord.calendarType = "lunar";
+      nextParamsRecord.isLeapMonth = "true";
+    } else {
+      nextParamsRecord.calendarType = calendarSelection;
+      delete nextParamsRecord.isLeapMonth;
+    }
+
+    void updateCurrentEntry(nextParamsRecord);
+  }, [slots.current.paramsRecord, updateCurrentEntry]);
+
+  const handleBirthTextSubmit = useCallback((birthText: string) => {
+    const nextParamsRecord = {
+      ...slots.current.paramsRecord,
+      birthText,
+    };
+
+    void updateCurrentEntry(nextParamsRecord);
+  }, [slots.current.paramsRecord, updateCurrentEntry]);
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3 relative">
-      <ManselyeokForm
-        input={slots.current.pageState.input}
-        errors={slots.current.pageState.errors}
-      />
+      <div className="relative z-50">
+        <ManselyeokForm
+          input={slots.current.pageState.input}
+          errors={slots.current.pageState.errors}
+          onBirthTextSubmit={handleBirthTextSubmit}
+          onCalendarSelectionChange={handleCalendarSelectionChange}
+          onGenderChange={handleGenderChange}
+          syncUrl={false}
+        />
+      </div>
 
-      <div className="relative">
-        <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 md:-left-10 pointer-events-none md:pointer-events-auto opacity-70 transition-opacity hover:opacity-100">
-          <div className={`pointer-events-auto ${canShiftPrevious ? "" : "opacity-35"}`}>
+      <div className="relative z-0">
+        <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-40 md:-left-10 opacity-70 transition-opacity hover:opacity-100">
+          <div className={canShiftPrevious ? "" : "opacity-35"}>
             <HistoryNavButton direction="previous" onClick={() => void commitShift("previous")} />
           </div>
         </div>
@@ -606,7 +647,7 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={settleBackToCenter}
-          className={`relative z-10 overflow-hidden [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
+          className={`relative z-0 overflow-hidden [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
         >
           <div
             ref={trackRef}
@@ -622,7 +663,15 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
               />
               {previousChartNode}
             </div>
-            <div className="relative w-1/3 flex-none px-0.5">
+            <div
+              className="relative w-1/3 flex-none px-0.5 transition-[opacity,transform]"
+              style={{
+                opacity: isPanelInMotion ? 0.92 : 1,
+                transform: isPanelInMotion ? "scale(0.992)" : "scale(1)",
+                transitionDuration: `${SLIDE_ANIMATION_MS}ms`,
+                transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
+              }}
+            >
               {currentChartNode}
             </div>
             <div className="w-1/3 flex-none pl-1.5">
@@ -635,8 +684,8 @@ export function ManselyeokWorkspace({ initialState }: WorkspaceProps) {
           </div>
         </div>
 
-        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 md:-right-10 pointer-events-none md:pointer-events-auto opacity-70 transition-opacity hover:opacity-100">
-          <div className={`pointer-events-auto ${canShiftNext ? "" : "opacity-35"}`}>
+        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-40 md:-right-10 opacity-70 transition-opacity hover:opacity-100">
+          <div className={canShiftNext ? "" : "opacity-35"}>
             <HistoryNavButton direction="next" onClick={() => void commitShift("next")} />
           </div>
         </div>

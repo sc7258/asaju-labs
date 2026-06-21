@@ -6,7 +6,7 @@ interface HistoryNavButtonProps {
 }
 
 const floatingButtonClass =
-  "flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border border-stone-200/60 bg-white/70 text-stone-700 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all hover:bg-white/90 hover:text-stone-900 active:scale-95";
+  "relative z-10 flex h-16 w-16 sm:h-20 sm:w-20 touch-manipulation items-center justify-center rounded-full border border-stone-200/60 bg-white/70 text-stone-700 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all hover:bg-white/90 hover:text-stone-900 active:scale-95";
 
 export function HistoryNavButton({ direction, onClick }: HistoryNavButtonProps) {
   const isPrevious = direction === "previous";
