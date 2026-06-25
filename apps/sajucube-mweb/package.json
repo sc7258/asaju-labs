@@ -16,10 +16,10 @@
     "deploy:prod:logs": "vercel deploy ../.. --prod --yes --logs"
   },
   "dependencies": {
-    "@repo/ui": "workspace:*",
-    "@repo/saju-core": "workspace:*",
     "@fontsource/noto-sans-kr": "^5.2.9",
     "@gracefullight/saju": "^1.3.0",
+    "@repo/saju-core": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "@types/luxon": "^3.7.1",
@@ -27,7 +27,8 @@
     "luxon": "^3.7.2",
     "next": "16.2.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-zoom-pan-pinch": "^4.0.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

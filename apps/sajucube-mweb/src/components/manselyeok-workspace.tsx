@@ -11,6 +11,7 @@ import {
 } from "@repo/saju-core";
 import { shiftBirthTextByDays, type CalendarSelection } from "@/lib/date-navigation";
 import { HistoryNavButton } from "@repo/ui/history-nav-button";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface WorkspaceProps {
   initialState: ChasamManselyeokPageState;
@@ -116,7 +117,9 @@ export function ManselyeokWorkspace({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const leftHintRef = useRef<HTMLDivElement | null>(null);
   const rightHintRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const scaleRef = useRef<number>(1);
   const dragOffsetRef = useRef(0);
   const dragFrameRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
@@ -302,11 +305,24 @@ export function ManselyeokWorkspace({
 
   const currentChartNode = useMemo(() => {
     return (
-      <ChasamManselyeokChartClient
-        panels={slots.current.pageState.panels}
-        inputBirthText={slots.current.pageState.input.birthText}
-        key={getChartKey(slots.current.pageState)}
-      />
+      <TransformWrapper
+        initialScale={1}
+        minScale={1}
+        maxScale={4}
+        onTransformed={(ref, state) => {
+          scaleRef.current = state.scale;
+        }}
+        panning={{ disabled: false }}
+        doubleClick={{ disabled: true }}
+      >
+        <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
+          <ChasamManselyeokChartClient
+            panels={slots.current.pageState.panels}
+            inputBirthText={slots.current.pageState.input.birthText}
+            key={getChartKey(slots.current.pageState)}
+          />
+        </TransformComponent>
+      </TransformWrapper>
     );
   }, [slots.current]);
 
@@ -509,7 +525,7 @@ export function ManselyeokWorkspace({
   ]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isAnimating || isPending || e.touches.length !== 1) {
+    if (isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05) {
       return;
     }
 
@@ -521,7 +537,7 @@ export function ManselyeokWorkspace({
   }, [isAnimating, isPending]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1) {
+    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05) {
       return;
     }
 
