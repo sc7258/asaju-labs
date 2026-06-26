@@ -49,6 +49,50 @@ export class WikidataPeopleSeedRepository {
     return upsertedCount;
   }
 
+  /**
+   * dump import 전용: 여러 seed를 한 번의 SQL로 FETCHED 상태로 upsert
+   */
+  async batchMarkFetchedByWikidataIds(
+    items: Array<{ wikidataId: string; rawWikipediaId: number; seed?: DiscoveredWikidataPersonSeed }>,
+  ): Promise<void> {
+    if (items.length === 0) return;
+
+    const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const placeholders = items.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+    const values: unknown[] = [];
+
+    for (const item of items) {
+      values.push(
+        item.wikidataId,
+        item.seed?.label ?? null,
+        item.seed?.description ?? null,
+        item.seed?.birthDate ?? null,
+        item.rawWikipediaId,
+        now,  // fetched_at
+        now,  // created_at
+        now,  // updated_at
+        now,  // discovered_at
+      );
+    }
+
+    await this.db.$executeRawUnsafe(
+      `INSERT INTO wikidata_people_seeds
+         (wikidata_id, label, description, birth_date, raw_wikipedia_id, fetched_at, created_at, updated_at, discovered_at, status)
+       VALUES ${placeholders.replace(/\(([^)]+)\)/g, "($1, 'FETCHED')")}
+       ON DUPLICATE KEY UPDATE
+         label = VALUES(label),
+         description = VALUES(description),
+         birth_date = VALUES(birth_date),
+         raw_wikipedia_id = VALUES(raw_wikipedia_id),
+         status = 'FETCHED',
+         error_message = NULL,
+         fetched_at = VALUES(fetched_at),
+         updated_at = VALUES(updated_at)`,
+      ...values,
+    );
+  }
+
+
   async findPending(limit: number) {
     return this.db.wikidataPeopleSeed.findMany({
       where: {

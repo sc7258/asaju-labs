@@ -10,6 +10,11 @@ export interface UpsertRawWikipediaInput {
   rawRevisionId?: string;
 }
 
+export interface BatchUpsertRawWikipediaResult {
+  wikidataId: string;
+  id: number;
+}
+
 type PrismaRawWikipediaClient = PrismaClient | Prisma.TransactionClient;
 
 export class RawWikipediaRepository {
@@ -58,6 +63,26 @@ export class RawWikipediaRepository {
       },
     });
   }
+
+  /**
+   * 여러 건을 한 번의 SQL로 upsert (배치 처리용)
+   * INSERT ... ON DUPLICATE KEY UPDATE 활용
+   */
+  async batchUpsert(inputs: UpsertRawWikipediaInput[]): Promise<BatchUpsertRawWikipediaResult[]> {
+    if (inputs.length === 0) return [];
+
+    // Promise.all로 병렬 처리하여 max_allowed_packet 에러 방지
+    // 배치 크기가 50이므로 커넥션 풀을 적절히 활용하여 빠르게 처리 가능
+    const results = await Promise.all(
+      inputs.map(async (input) => {
+        const row = await this.upsert(input);
+        return { wikidataId: row.wikidataId, id: row.id };
+      })
+    );
+
+    return results;
+  }
+
 
   async markProcessed(id: number): Promise<void> {
     await this.updateProcessStatus(id, "PROCESSED");

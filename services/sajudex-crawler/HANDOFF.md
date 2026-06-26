@@ -5,10 +5,12 @@
 ## 현재 상태
 
 - Commit: `855293c Add Sajudex crawler DB schema and Wikidata import`
-- Prisma schema package: `packages/db-schema`
+- Prisma schema package: `packages/db-schema` (최근 `imageUrl` 및 `person_saju_plates` 테이블 구조 업데이트 완료)
 - Crawler DB target: `sajudex`
 - Local DB URL 예시: `mysql://orcmes:P%40ssw0rd1234@jayce-data:3306/sajudex`
 - 비밀번호의 `@`는 Prisma URL에서 `%40`으로 인코딩해야 합니다.
+- **진행 중인 작업:** 백그라운드 터미널에서 `latest-all.json.bz2` dump 스트리밍 raw import 실행 중 (Windows bzip2 fallback 적용)
+- **최근 완료된 작업:** `transform:wikidata` 로직 구현 (P18 사진 추출 및 `@repo/saju-core`를 이용한 6판 사주 생성 연동 완료)
 
 ## 주요 명령
 
@@ -43,7 +45,6 @@ pnpm --filter sajudex-crawler dev -- extract:wikidata Q76
 
 ## 다음 작업
 
-- `raw_wikipedia`에서 `curated_people`로 옮기는 `transform:wikidata` 구현
-- Wikidata `P569`, `P570`, `P27`, `P19`, `P106` claim mapper 작성
-- dump import 장시간 실행 시 resume/checkpoint 전략 추가
+- 백그라운드 dump import가 어느 정도 진행되거나 완료되면 `transform:wikidata` 명령어를 실행하여 데이터 정제(6판 사주 계산 포함) 및 검증
+- dump import 장시간 실행 시 resume/checkpoint 전략 추가 (중간에 끊겼을 때 이어받기)
 - 누락/실패 리포트 커맨드 추가

@@ -40,3 +40,9 @@
 *   **먼저 확인할 명령:**
     *   `pnpm --filter sajudex-crawler build`
     *   `pnpm --filter sajudex-crawler dev -- db:check`
+
+## 6. 도메인 용어 및 데이터 분리 규칙 (Terminology & Data Separation)
+프로젝트 내에서 다음 두 용어의 역할과 저장소를 엄격히 구분합니다.
+
+*   **명식록 (Public/Global Data):** 위키데이터나 나무위키 등 외부 출처에서 수집한 **유명인 사주/프로필 도감**입니다. `packages/db-schema`의 `curated_people` 테이블에 저장되며, 특정 사용자에게 종속되지 않는 공용 데이터입니다.
+*   **인연록 (Private Data):** 앱 사용자가 직접 등록하고 관리하는 **지인(가족, 친구 등) 사주 목록**입니다. 크롤러의 수집 대상이 아니며, 메인 앱의 사용자 DB 쪽에서 식별자(`userId`)와 함께 완전히 별도의 테이블로 분리되어 관리됩니다. `curated_people` 테이블에 지인 정보를 섞지 않도록 주의하세요.

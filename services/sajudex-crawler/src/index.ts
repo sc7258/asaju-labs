@@ -4,8 +4,6 @@ import { discoverWikidataPeople } from "./pipeline/discover-wikidata-people";
 import { extractPendingWikidataSeeds } from "./pipeline/extract-pending-wikidata";
 import { extractWikidataEntities } from "./pipeline/extract-wikidata";
 import { importWikidataJsonDump } from "./pipeline/import-wikidata-json-dump";
-import { runLoggedWikidataPipeline } from "./pipeline/run-pipeline";
-import { transformPendingWikidataRawRows } from "./pipeline/transform-wikidata";
 import { RawWikipediaRepository } from "./repositories/raw-wikipedia-repository";
 import { startCrawlerSchedule } from "./scheduler/cron";
 import { WikidataPeopleSeedRepository } from "./repositories/wikidata-people-seed-repository";
@@ -132,6 +130,9 @@ async function importJsonDump(args: string[]): Promise<void> {
   const limit = readOptionalNumberOption(args, "--limit");
   const skip = readOptionalNumberOption(args, "--skip") ?? 0;
   const progressEvery = readNumberOption(args, "--progress-every", 10_000);
+  const checkpointEvery = readOptionalNumberOption(args, "--checkpoint-every");
+  const batchSize = readOptionalNumberOption(args, "--batch-size");
+  const resetCheckpoint = args.includes("--reset-checkpoint");
   const rawWikipediaRepository = new RawWikipediaRepository(prisma);
   const seedRepository = new WikidataPeopleSeedRepository(prisma);
   const result = await importWikidataJsonDump(
@@ -140,6 +141,9 @@ async function importJsonDump(args: string[]): Promise<void> {
       limit,
       skip,
       progressEvery,
+      checkpointEvery,
+      batchSize,
+      resetCheckpoint,
     },
     rawWikipediaRepository,
     seedRepository,
@@ -162,6 +166,7 @@ async function importJsonDump(args: string[]): Promise<void> {
 }
 
 async function transformWikidata(args: string[]): Promise<void> {
+  const { transformPendingWikidataRawRows } = await import("./pipeline/transform-wikidata.js");
   const env = loadCrawlerEnv();
   const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
   const result = await transformPendingWikidataRawRows(limit, env, prisma);
@@ -183,6 +188,7 @@ async function transformWikidata(args: string[]): Promise<void> {
 }
 
 async function runPipeline(args: string[]): Promise<void> {
+  const { runLoggedWikidataPipeline } = await import("./pipeline/run-pipeline.js");
   const env = loadCrawlerEnv();
   const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
   const offset = readNumberOption(args, "--offset", 0);
@@ -214,6 +220,7 @@ async function runPipeline(args: string[]): Promise<void> {
 }
 
 async function schedulePipeline(args: string[]): Promise<void> {
+  const { runLoggedWikidataPipeline } = await import("./pipeline/run-pipeline.js");
   const env = loadCrawlerEnv();
   const limit = readNumberOption(args, "--limit", env.crawlerBatchSize);
   const offset = readNumberOption(args, "--offset", 0);

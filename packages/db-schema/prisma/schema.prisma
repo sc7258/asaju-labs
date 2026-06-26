@@ -10,6 +10,7 @@ datasource db {
 enum CrawlSource {
   WIKIDATA
   NAMUWIKI
+  ASTRODATABANK
   USER_SUBMIT
 }
 
@@ -51,6 +52,8 @@ enum WikidataSeedStatus {
   SKIPPED
 }
 
+
+
 model RawWikipedia {
   id            Int              @id @default(autoincrement())
   wikidataId    String           @unique @map("wikidata_id") @db.VarChar(32)
@@ -75,6 +78,26 @@ model RawWikipedia {
   @@index([processStatus, scrapedAt])
   @@index([rawHash])
   @@map("raw_wikipedia")
+}
+
+model RawAstroDatabank {
+  id            Int              @id @default(autoincrement())
+  url           String           @unique @db.VarChar(512)
+  title         String           @db.VarChar(255)
+  rawHtml       String           @map("raw_html") @db.LongText
+  processStatus RawProcessStatus @default(PENDING) @map("process_status")
+  processError  String?          @map("process_error") @db.Text
+  attemptCount  Int              @default(0) @map("attempt_count")
+  scrapedAt     DateTime         @default(now()) @map("scraped_at")
+  lastAttemptAt DateTime?        @map("last_attempt_at")
+  processedAt   DateTime?        @map("processed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  curatedPerson CuratedPerson?
+
+  @@index([processStatus, scrapedAt])
+  @@map("raw_astrodatabank")
 }
 
 model WikidataPeopleSeed {
@@ -104,10 +127,14 @@ model WikidataPeopleSeed {
 model CuratedPerson {
   id                     Int                 @id @default(autoincrement())
   displayName            String              @map("display_name") @db.VarChar(191)
+  originalName           String?             @map("original_name") @db.VarChar(191)
   sortName               String?             @map("sort_name") @db.VarChar(191)
   birthYear              Int?                @map("birth_year") @db.SmallInt
   birthMonth             Int?                @map("birth_month") @db.TinyInt
   birthDay               Int?                @map("birth_day") @db.TinyInt
+  birthTime              String?             @map("birth_time") @db.VarChar(16)
+  gender                 String?             @map("gender") @db.VarChar(16)
+  roddenRating           String?             @map("rodden_rating") @db.VarChar(16)
   birthPrecision         BirthDatePrecision  @default(UNKNOWN) @map("birth_precision")
   birthCalendarStatus    BirthCalendarStatus @default(UNKNOWN) @map("birth_calendar_status")
   deathYear              Int?                @map("death_year") @db.SmallInt
@@ -118,26 +145,35 @@ model CuratedPerson {
   birthCountryName       String?             @map("birth_country_name") @db.VarChar(128)
   occupationName         String?             @map("occupation_name") @db.VarChar(128)
   source                 CrawlSource
-  sourceId               String              @map("source_id") @db.VarChar(64)
+  sourceId               String              @map("source_id") @db.VarChar(512)
   sourceUrl              String              @map("source_url") @db.VarChar(512)
+  wikipediaUrl           String?             @map("wikipedia_url") @db.VarChar(512)
+  imageUrl               String?             @map("image_url") @db.VarChar(512)
   rawWikipediaId         Int?                @unique @map("raw_wikipedia_id")
-  sajuYearStem           String?             @map("saju_year_stem") @db.VarChar(4)
-  sajuYearBranch         String?             @map("saju_year_branch") @db.VarChar(4)
-  sajuMonthStem          String?             @map("saju_month_stem") @db.VarChar(4)
-  sajuMonthBranch        String?             @map("saju_month_branch") @db.VarChar(4)
-  sajuDayStem            String?             @map("saju_day_stem") @db.VarChar(4)
-  sajuDayBranch          String?             @map("saju_day_branch") @db.VarChar(4)
+  rawAstrodatabankId     Int?                @unique @map("raw_astrodatabank_id")
+  bonwonSajuId           Int?                @map("bonwon_saju_id")
+  charyeokSajuId         Int?                @map("charyeok_saju_id")
+  buheojaBonwonSajuId    Int?                @map("buheoja_bonwon_saju_id")
+  buheojaCharyeokSajuId  Int?                @map("buheoja_charyeok_saju_id")
+  heojaBonwonSajuId      Int?                @map("heoja_bonwon_saju_id")
+  heojaCharyeokSajuId    Int?                @map("heoja_charyeok_saju_id")
   sajuComputedAt         DateTime?           @map("saju_computed_at")
   createdAt              DateTime            @default(now()) @map("created_at")
   updatedAt              DateTime            @updatedAt @map("updated_at")
 
-  rawWikipedia RawWikipedia? @relation(fields: [rawWikipediaId], references: [id])
+  rawWikipedia       RawWikipedia?      @relation(fields: [rawWikipediaId], references: [id])
+  rawAstrodatabank   RawAstroDatabank?  @relation(fields: [rawAstrodatabankId], references: [id])
+  
+  bonwonSaju             MasterSaju?    @relation("BonwonSaju", fields: [bonwonSajuId], references: [id])
+  charyeokSaju           MasterSaju?    @relation("CharyeokSaju", fields: [charyeokSajuId], references: [id])
+  buheojaBonwonSaju      MasterSaju?    @relation("BuheojaBonwonSaju", fields: [buheojaBonwonSajuId], references: [id])
+  buheojaCharyeokSaju    MasterSaju?    @relation("BuheojaCharyeokSaju", fields: [buheojaCharyeokSajuId], references: [id])
+  heojaBonwonSaju        MasterSaju?    @relation("HeojaBonwonSaju", fields: [heojaBonwonSajuId], references: [id])
+  heojaCharyeokSaju      MasterSaju?    @relation("HeojaCharyeokSaju", fields: [heojaCharyeokSajuId], references: [id])
 
   @@unique([source, sourceId])
   @@index([displayName])
   @@index([birthYear, birthMonth, birthDay])
-  @@index([sajuDayStem, sajuDayBranch])
-  @@index([sajuMonthStem, sajuMonthBranch])
   @@index([citizenshipCountryName])
   @@index([birthCountryName])
   @@map("curated_people")
@@ -160,4 +196,28 @@ model CrawlerRun {
 
   @@index([source, status, startedAt])
   @@map("crawler_runs")
+}
+
+model MasterSaju {
+  id              Int      @id @default(autoincrement())
+  
+  yearStem    String   @map("year_stem") @db.VarChar(4)
+  yearBranch  String   @map("year_branch") @db.VarChar(4)
+  monthStem   String   @map("month_stem") @db.VarChar(4)
+  monthBranch String   @map("month_branch") @db.VarChar(4)
+  dayStem     String   @map("day_stem") @db.VarChar(4)
+  dayBranch   String   @map("day_branch") @db.VarChar(4)
+
+  curatedPeopleBonwon          CuratedPerson[] @relation("BonwonSaju")
+  curatedPeopleCharyeok        CuratedPerson[] @relation("CharyeokSaju")
+  curatedPeopleBuheojaBonwon   CuratedPerson[] @relation("BuheojaBonwonSaju")
+  curatedPeopleBuheojaCharyeok CuratedPerson[] @relation("BuheojaCharyeokSaju")
+  curatedPeopleHeojaBonwon     CuratedPerson[] @relation("HeojaBonwonSaju")
+  curatedPeopleHeojaCharyeok   CuratedPerson[] @relation("HeojaCharyeokSaju")
+
+  @@unique([yearStem, yearBranch, monthStem, monthBranch, dayStem, dayBranch], name: "saju_idx")
+  @@index([dayStem, dayBranch])
+  @@index([monthStem, monthBranch])
+  @@index([yearStem, yearBranch])
+  @@map("master_saju")
 }
