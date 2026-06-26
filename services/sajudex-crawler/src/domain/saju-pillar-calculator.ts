@@ -1,55 +1,60 @@
-import { DateTime } from "luxon";
+import { getChasamManselyeokPageState } from "@repo/saju-core";
 
-export interface SajuPillarSnapshot {
-  yearStem: string;
-  yearBranch: string;
-  monthStem: string;
-  monthBranch: string;
-  dayStem: string;
-  dayBranch: string;
+export interface SajuPlateSnapshot {
+  plateType: string;
+  sajuYearStem: string;
+  sajuYearBranch: string;
+  sajuMonthStem: string;
+  sajuMonthBranch: string;
+  sajuDayStem: string;
+  sajuDayBranch: string;
 }
 
-const SEOUL_TIMEZONE = "Asia/Seoul";
-const dynamicImport = new Function(
-  "specifier",
-  "return import(specifier);",
-) as (specifier: string) => Promise<any>;
-
-export async function calculateSajuPillarsForSolarDate(input: {
+export async function calculateSajuPlatesForSolarDate(input: {
   year: number;
   month: number;
   day: number;
-}): Promise<SajuPillarSnapshot> {
-  const [{ getSaju }, { createLuxonAdapter }] = await Promise.all([
-    dynamicImport("@gracefullight/saju"),
-    dynamicImport("@gracefullight/saju/adapters/luxon"),
-  ]);
-  const adapter = await createLuxonAdapter();
-  const birthDateTime = DateTime.fromObject(
-    {
-      year: input.year,
-      month: input.month,
-      day: input.day,
-      hour: 12,
-      minute: 0,
-    },
-    { zone: SEOUL_TIMEZONE },
-  );
-  const saju = getSaju(birthDateTime, {
-    adapter,
-    gender: "male",
-    yearlyLuckRange: {
-      from: input.year,
-      to: input.year,
-    },
+}): Promise<SajuPlateSnapshot[]> {
+  const pageState = await getChasamManselyeokPageState({
+    y: String(input.year),
+    m: String(input.month),
+    d: String(input.day),
+    h: "12",
+    min: "0",
+    g: "m",
+    t: "solar",
+    bt: "Unknown",
   });
 
-  return {
-    yearStem: saju.pillars.year[0] ?? "",
-    yearBranch: saju.pillars.year[1] ?? "",
-    monthStem: saju.pillars.month[0] ?? "",
-    monthBranch: saju.pillars.month[1] ?? "",
-    dayStem: saju.pillars.day[0] ?? "",
-    dayBranch: saju.pillars.day[1] ?? "",
+  if (!pageState.panels) {
+    throw new Error("Failed to calculate Saju plates: " + pageState.errors.join(", "));
+  }
+
+  const mapKeyToEnum = (key: string): string => {
+    switch (key) {
+      case "buheoja-bonwon": return "BUHEOJA_BONWON";
+      case "buheoja-charyeok": return "BUHEOJA_CHARYEOK";
+      case "bonwon": return "BONWON";
+      case "charyeok": return "CHARYEOK";
+      case "heoja-bonwon": return "HEOJA_BONWON";
+      case "heoja-charyeok": return "HEOJA_CHARYEOK";
+      default: return "BONWON";
+    }
   };
+
+  return pageState.panels.map(panel => {
+    const yearPillar = panel.viewModel.pillars.find(p => p.key === "year");
+    const monthPillar = panel.viewModel.pillars.find(p => p.key === "month");
+    const dayPillar = panel.viewModel.pillars.find(p => p.key === "day");
+
+    return {
+      plateType: mapKeyToEnum(panel.key),
+      sajuYearStem: yearPillar?.stem ?? "",
+      sajuYearBranch: yearPillar?.branch ?? "",
+      sajuMonthStem: monthPillar?.stem ?? "",
+      sajuMonthBranch: monthPillar?.branch ?? "",
+      sajuDayStem: dayPillar?.stem ?? "",
+      sajuDayBranch: dayPillar?.branch ?? "",
+    };
+  });
 }

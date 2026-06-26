@@ -1,13 +1,17 @@
-export { Prisma, PrismaClient } from "@prisma/client";
-export type {
+export {
+  Prisma,
+  PrismaClient,
   BirthCalendarStatus,
   BirthDatePrecision,
   CrawlRunStatus,
   CrawlSource,
+  RawProcessStatus,
+  WikidataSeedStatus,
+} from "@prisma/client";
+
+export type {
   CuratedPerson,
   CrawlerRun,
-  RawProcessStatus,
   RawWikipedia,
   WikidataPeopleSeed,
-  WikidataSeedStatus,
 } from "@prisma/client";

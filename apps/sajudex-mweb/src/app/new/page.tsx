@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { v7 as uuidv7 } from 'uuidv7';
+import { uuidv7 } from 'uuidv7';
 
 // Helper to format the continuous digit string into YYYY-MM-DD HH:mm for display
 function formatBirthInput(value: string) {

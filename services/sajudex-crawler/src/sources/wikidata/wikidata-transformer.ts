@@ -4,7 +4,7 @@ import {
   RawWikipedia,
 } from "@repo/db-schema";
 
-import { calculateSajuPillarsForSolarDate } from "../../domain/saju-pillar-calculator";
+import { calculateSajuPlatesForSolarDate } from "../../domain/saju-pillar-calculator";
 import { UpsertCuratedPersonInput } from "../../repositories/curated-person-repository";
 import { WikidataEntity } from "./wikidata-client";
 import { WikidataEntityReferenceResolver } from "./wikidata-entity-reference-resolver";
@@ -61,6 +61,8 @@ export async function transformRawWikipediaToCuratedPerson(
     "P106",
     referenceResolver,
   );
+  const imageUrl = getFirstTextClaim(entity, "P18");
+
   const curatedPerson: UpsertCuratedPersonInput = {
     displayName,
     sortName: normalizeOptionalText(entity.labels?.en?.value) ?? displayName,
@@ -79,13 +81,8 @@ export async function transformRawWikipediaToCuratedPerson(
     source: "WIKIDATA",
     sourceId: entity.id,
     sourceUrl: rawRow.sourceUrl,
+    imageUrl,
     rawWikipediaId: rawRow.id,
-    sajuYearStem: null,
-    sajuYearBranch: null,
-    sajuMonthStem: null,
-    sajuMonthBranch: null,
-    sajuDayStem: null,
-    sajuDayBranch: null,
     sajuComputedAt: null,
   };
 
@@ -95,18 +92,12 @@ export async function transformRawWikipediaToCuratedPerson(
     birthDateClaim.day !== null
   ) {
     try {
-      const saju = await calculateSajuPillarsForSolarDate({
+      await calculateSajuPlatesForSolarDate({
         year: birthDateClaim.year,
         month: birthDateClaim.month,
         day: birthDateClaim.day,
       });
 
-      curatedPerson.sajuYearStem = saju.yearStem;
-      curatedPerson.sajuYearBranch = saju.yearBranch;
-      curatedPerson.sajuMonthStem = saju.monthStem;
-      curatedPerson.sajuMonthBranch = saju.monthBranch;
-      curatedPerson.sajuDayStem = saju.dayStem;
-      curatedPerson.sajuDayBranch = saju.dayBranch;
       curatedPerson.sajuComputedAt = new Date();
     } catch {
       // Historical dates outside the current calculator range should not block loading.
