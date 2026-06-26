@@ -447,6 +447,13 @@ export function ManselyeokWorkspace({
       return;
     }
 
+    if (
+      document.activeElement instanceof HTMLElement &&
+      (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")
+    ) {
+      document.activeElement.blur();
+    }
+
     const target = direction === "previous" ? slots.previous : slots.next;
     if (!target) {
       return;
@@ -529,6 +536,13 @@ export function ManselyeokWorkspace({
   ]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (
+      document.activeElement instanceof HTMLElement &&
+      (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")
+    ) {
+      document.activeElement.blur();
+    }
+
     if (isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05) {
       return;
     }
