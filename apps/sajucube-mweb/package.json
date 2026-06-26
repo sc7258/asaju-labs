@@ -44,7 +44,7 @@
     "jsdom": "^27.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vercel": "^50.39.0",
+    "vercel": "^54.18.0",
     "vitest": "^3.2.4"
   },
   "license": "MIT"
