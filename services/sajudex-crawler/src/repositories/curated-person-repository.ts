@@ -27,6 +27,12 @@ export interface UpsertCuratedPersonInput {
   imageUrl?: string | null;
   rawWikipediaId: number;
   sajuComputedAt?: Date | null;
+  bonwonSajuId?: number | null;
+  charyeokSajuId?: number | null;
+  buheojaBonwonSajuId?: number | null;
+  buheojaCharyeokSajuId?: number | null;
+  heojaBonwonSajuId?: number | null;
+  heojaCharyeokSajuId?: number | null;
 }
 
 type PrismaCuratedPersonClient = PrismaClient | Prisma.TransactionClient;
@@ -56,6 +62,12 @@ export class CuratedPersonRepository {
       imageUrl: input.imageUrl,
       rawWikipediaId: input.rawWikipediaId,
       sajuComputedAt: input.sajuComputedAt,
+      bonwonSajuId: input.bonwonSajuId,
+      charyeokSajuId: input.charyeokSajuId,
+      buheojaBonwonSajuId: input.buheojaBonwonSajuId,
+      buheojaCharyeokSajuId: input.buheojaCharyeokSajuId,
+      heojaBonwonSajuId: input.heojaBonwonSajuId,
+      heojaCharyeokSajuId: input.heojaCharyeokSajuId,
     };
 
     return this.db.curatedPerson.upsert({

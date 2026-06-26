@@ -5,6 +5,7 @@ import {
 } from "@repo/db-schema";
 
 import { calculateSajuPlatesForSolarDate } from "../../domain/saju-pillar-calculator";
+import { calculateMasterSajuId } from "@repo/saju-core";
 import { UpsertCuratedPersonInput } from "../../repositories/curated-person-repository";
 import { WikidataEntity } from "./wikidata-client";
 import { WikidataEntityReferenceResolver } from "./wikidata-entity-reference-resolver";
@@ -92,13 +93,32 @@ export async function transformRawWikipediaToCuratedPerson(
     birthDateClaim.day !== null
   ) {
     try {
-      await calculateSajuPlatesForSolarDate({
+      const plates = await calculateSajuPlatesForSolarDate({
         year: birthDateClaim.year,
         month: birthDateClaim.month,
         day: birthDateClaim.day,
       });
 
       curatedPerson.sajuComputedAt = new Date();
+
+      for (const plate of plates) {
+        const yearPillar = plate.sajuYearStem + plate.sajuYearBranch;
+        const monthPillar = plate.sajuMonthStem + plate.sajuMonthBranch;
+        const dayPillar = plate.sajuDayStem + plate.sajuDayBranch;
+        
+        if (yearPillar.length === 2 && monthPillar.length === 2 && dayPillar.length === 2) {
+          const masterId = calculateMasterSajuId(yearPillar, monthPillar, dayPillar);
+
+          switch (plate.plateType) {
+            case 'BONWON': curatedPerson.bonwonSajuId = masterId; break;
+            case 'CHARYEOK': curatedPerson.charyeokSajuId = masterId; break;
+            case 'BUHEOJA_BONWON': curatedPerson.buheojaBonwonSajuId = masterId; break;
+            case 'BUHEOJA_CHARYEOK': curatedPerson.buheojaCharyeokSajuId = masterId; break;
+            case 'HEOJA_BONWON': curatedPerson.heojaBonwonSajuId = masterId; break;
+            case 'HEOJA_CHARYEOK': curatedPerson.heojaCharyeokSajuId = masterId; break;
+          }
+        }
+      }
     } catch {
       // Historical dates outside the current calculator range should not block loading.
     }

@@ -1,5 +1,7 @@
 import { prisma } from '../db/client';
 import { AstroDatabankTransformer } from '../sources/astrodatabank/astrodatabank-transformer';
+import { calculateSajuPlatesForSolarDate } from '../domain/saju-pillar-calculator';
+import { calculateMasterSajuId } from '@repo/saju-core';
 
 export async function runAstroDatabankTransform() {
   console.log('Starting AstroDatabank Transform & Load Pipeline...');
@@ -42,6 +44,39 @@ export async function runAstroDatabankTransform() {
         throw new Error('Missing essential birth date information');
       }
 
+      // 사주 명식 계산 및 MasterSaju ID 매핑 (Enrichment)
+      let sajuData: any = {};
+      try {
+        const plates = await calculateSajuPlatesForSolarDate({
+          year: parsed.birthYear,
+          month: parsed.birthMonth,
+          day: parsed.birthDay,
+        });
+
+        sajuData.sajuComputedAt = new Date();
+
+        for (const plate of plates) {
+          const yearPillar = plate.sajuYearStem + plate.sajuYearBranch;
+          const monthPillar = plate.sajuMonthStem + plate.sajuMonthBranch;
+          const dayPillar = plate.sajuDayStem + plate.sajuDayBranch;
+          
+          if (yearPillar.length === 2 && monthPillar.length === 2 && dayPillar.length === 2) {
+            const masterId = calculateMasterSajuId(yearPillar, monthPillar, dayPillar);
+
+            switch (plate.plateType) {
+              case 'BONWON': sajuData.bonwonSajuId = masterId; break;
+              case 'CHARYEOK': sajuData.charyeokSajuId = masterId; break;
+              case 'BUHEOJA_BONWON': sajuData.buheojaBonwonSajuId = masterId; break;
+              case 'BUHEOJA_CHARYEOK': sajuData.buheojaCharyeokSajuId = masterId; break;
+              case 'HEOJA_BONWON': sajuData.heojaBonwonSajuId = masterId; break;
+              case 'HEOJA_CHARYEOK': sajuData.heojaCharyeokSajuId = masterId; break;
+            }
+          }
+        }
+      } catch (calcError) {
+        console.warn(`Could not calculate Saju for ${raw.title}:`, calcError);
+      }
+
       // 3. 기존 데이터와 병합(Merge) 로직
       // 매칭 키: 원어명(originalName)으로 찾기
       const existingPerson = await prisma.curatedPerson.findFirst({
@@ -59,6 +94,7 @@ export async function runAstroDatabankTransform() {
             roddenRating: parsed.roddenRating || existingPerson.roddenRating,
             rawAstrodatabankId: raw.id, // 관계 연결
             source: 'ASTRODATABANK', // 출처 갱신 또는 유지
+            ...sajuData
           }
         });
         console.log(`Merged (Updated) existing person: ${raw.title}`);
@@ -80,6 +116,7 @@ export async function runAstroDatabankTransform() {
             sourceUrl: raw.url,
             wikipediaUrl: parsed.wikipediaUrl || null,
             rawAstrodatabankId: raw.id,
+            ...sajuData
           }
         });
         console.log(`Inserted new person: ${raw.title}`);
