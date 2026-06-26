@@ -309,18 +309,22 @@ export function ManselyeokWorkspace({
         initialScale={1}
         minScale={1}
         maxScale={4}
-        onTransformed={(ref, state) => {
+        onTransform={(ref, state) => {
           scaleRef.current = state.scale;
         }}
         panning={{ disabled: false }}
         doubleClick={{ disabled: true }}
+        centerOnInit={true}
+        centerZoomedOut={true}
       >
-        <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
-          <ChasamManselyeokChartClient
-            panels={slots.current.pageState.panels}
-            inputBirthText={slots.current.pageState.input.birthText}
-            key={getChartKey(slots.current.pageState)}
-          />
+        <TransformComponent wrapperStyle={{ width: "100%", display: "flex", justifyContent: "center" }} contentStyle={{ width: "100%", display: "flex", justifyContent: "center" }}>
+          <div className="w-full max-w-full">
+            <ChasamManselyeokChartClient
+              panels={slots.current.pageState.panels}
+              inputBirthText={slots.current.pageState.input.birthText}
+              key={getChartKey(slots.current.pageState)}
+            />
+          </div>
         </TransformComponent>
       </TransformWrapper>
     );
