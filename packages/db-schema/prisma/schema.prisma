@@ -199,7 +199,7 @@ model CrawlerRun {
 }
 
 model MasterSaju {
-  id              Int      @id @default(autoincrement())
+  id              Int      @id
   
   yearStem    String   @map("year_stem") @db.VarChar(4)
   yearBranch  String   @map("year_branch") @db.VarChar(4)
@@ -221,3 +221,4 @@ model MasterSaju {
   @@index([yearStem, yearBranch])
   @@map("master_saju")
 }
+

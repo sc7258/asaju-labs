@@ -1,8 +1,8 @@
-﻿import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable } from 'dexie';
 
 export interface Relationship {
-  targetId: string; // UUID of another Person
-  type: string;     // e.g., '배우자', '동업자', '친구'
+  targetId: string;
+  type: string;
   memo?: string;
 }
 
@@ -14,26 +14,30 @@ export interface Person {
   isLunar?: boolean;
   isLeapMonth?: boolean;
   gender?: 'M' | 'F';
-  sajuIlju?: string; // Pre-calculated Ilju for quick search
-  sajuWolju?: string; // Pre-calculated Wolju
-  sajuData?: any; // Full pre-calculated Saju 8 characters data
-  memo?: string; // Free text for any extra info, contacts, notes
-  relationships?: Relationship[]; // Array of connections to other people
+  sajuIlju?: string;
+  sajuWolju?: string;
+  sajuData?: any;
+  memo?: string;
+  relationships?: Relationship[];
   createdAt: Date;
   updatedAt: Date;
+
+  // 🎯 사주덱스 통합 검색을 위한 수학적 고유 ID (0 ~ 43199)
+  bonwonId?: number;
+  charyeokId?: number;
+  buheojaBonwonId?: number;
+  buheojaCharyeokId?: number;
+  heojaBonwonId?: number;
+  heojaCharyeokId?: number;
 }
 
 const db = new Dexie('SajudexDatabase') as Dexie & {
-  persons: EntityTable<
-    Person,
-    'id' // The primary key is now the UUID string 'id'
-  >;
+  persons: EntityTable<Person, 'id'>;
 };
 
-// Schema definition
-db.version(3).stores({
-  // Indexed properties for fast searching
-  persons: 'id, name, birthDate, sajuIlju, sajuWolju, createdAt'
+// 스키마 버전 4: 6판의 고유 ID 인덱스 추가
+db.version(4).stores({
+  persons: 'id, name, birthDate, sajuIlju, sajuWolju, bonwonId, charyeokId, buheojaBonwonId, buheojaCharyeokId, heojaBonwonId, heojaCharyeokId, createdAt'
 });
 
 export { db };

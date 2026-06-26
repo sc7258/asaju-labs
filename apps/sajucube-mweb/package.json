@@ -46,5 +46,6 @@
     "typescript": "^5",
     "vercel": "^50.39.0",
     "vitest": "^3.2.4"
-  }
+  },
+  "license": "MIT"
 }

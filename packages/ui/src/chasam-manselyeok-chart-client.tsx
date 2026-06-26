@@ -76,7 +76,7 @@ function renderPanels(displayedPanels: ChasamPanelState[] | null) {
             <InteractiveManselyeokChart
               accentTone={panel.isBoncha ? "boncha" : "default"}
               defaultExpanded={false}
-              displayProfileLabel={PANEL_LABELS[panel.key]}
+              displayProfileLabel={panel.isBoncha && panel.input.name && panel.input.name !== "홍길동" ? ${panel.input.name}  : PANEL_LABELS[panel.key]}
               input={panel.input}
               panelLabel={PANEL_LABELS[panel.key]}
               viewModel={panel.viewModel}

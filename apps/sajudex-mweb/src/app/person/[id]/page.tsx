@@ -3,7 +3,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Trash2, Calendar, User as UserIcon, AlignLeft } from 'lucide-react';
+import { ArrowLeft, Trash2, Calendar, User as UserIcon, AlignLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PersonDetailPage() {
@@ -28,12 +28,38 @@ export default function PersonDetailPage() {
   if (person === null) {
     return (
       <div className="p-6 text-center flex flex-col items-center gap-4 py-24">
-        <div className="text-4xl">😢</div>
+        <div className="text-4xl">😥</div>
         <p className="text-gray-500">인연 정보를 찾을 수 없습니다.</p>
         <Link href="/" className="text-blue-600 underline">목록으로 돌아가기</Link>
       </div>
     );
   }
+
+  const chasam = person.sajuData?.chasam;
+
+  // 🎯 사주큐브(Sajucube) 연동 URL 생성 로직
+  const generateSajucubeUrl = () => {
+    const gender = person.gender === 'M' ? 'male' : 'female';
+    let calendarType = 'solar';
+    if (person.isLunar) {
+      calendarType = person.isLeapMonth ? 'lunar-leap' : 'lunar';
+    }
+    
+    // birthDate (YYYY-MM-DD) -> YYYYMMDD
+    const dateStr = person.birthDate.replace(/-/g, '');
+    // birthTime (HH:mm) -> HHmm
+    const timeStr = person.birthTime ? person.birthTime.replace(':', '') : '';
+    const birthText = `${dateStr}${timeStr}`;
+
+    const searchParams = new URLSearchParams({
+      gender,
+      calendarType,
+      birthText,
+      name: person.name
+    });
+
+    return `https://sajucube.vercel.app/?${searchParams.toString()}`;
+  };
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-gray-50 pb-24">
@@ -45,7 +71,7 @@ export default function PersonDetailPage() {
           </Link>
           <h1 className="text-lg font-bold text-gray-900">상세 정보</h1>
         </div>
-        <button 
+        <button
           onClick={handleDelete}
           className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
         >
@@ -53,14 +79,14 @@ export default function PersonDetailPage() {
         </button>
       </header>
 
-      <main className="p-5 flex flex-col gap-6 flex-1">
+      <main className="p-5 flex flex-col gap-6 flex-1 max-w-2xl mx-auto w-full">
         {/* Profile Card */}
         <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold">
+          <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold shrink-0">  
             {person.name.charAt(0)}
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{person.name}</h2>
+          <div className="overflow-hidden">
+            <h2 className="text-2xl font-bold text-gray-900 truncate">{person.name}</h2>
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
               <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {person.birthDate}</span>
               {person.gender && (
@@ -68,29 +94,68 @@ export default function PersonDetailPage() {
               )}
             </div>
             {person.birthTime && (
-              <p className="text-xs text-gray-400 mt-1">시간: {person.birthTime} ({person.isLunar ? (person.isLeapMonth ? '음력 윤달' : '음력') : '양력'})</p>
+              <p className="text-xs text-gray-400 mt-1">시간: {person.birthTime} ({person.isLunar ? (person.isLeapMonth ? '윤달' : '음력') : '양력'})</p>
             )}
           </div>
         </section>
 
-        {/* Saju Info (Mock) */}
+        {/* 🎯 차샘 6차원 명식 판 */}
         <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-500 mb-4 flex items-center gap-2">
-            명식 요약
+          <h3 className="text-sm font-semibold text-gray-500 mb-4 flex items-center justify-between">
+            <span>요약 명식 (6판)</span>
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-xl text-center">
-              <span className="block text-xs text-gray-400 mb-1">일주</span>
-              <span className="text-xl font-bold text-gray-800">{person.sajuIlju || '-'}</span>
+          
+          {chasam ? (
+            <div className="grid grid-cols-2 gap-3 md:gap-4 text-center">
+              {/* 1. 본원 */}
+              <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col justify-center">
+                <span className="block text-xs font-bold text-indigo-400 mb-1">1. 본원</span>
+                <span className="text-2xl font-bold text-gray-900 tracking-widest">{chasam.bonwon || '-'}</span>
+              </div>
+              
+              {/* 2. 차력 */}
+              <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100 shadow-sm flex flex-col justify-center">
+                <span className="block text-xs font-bold text-blue-400 mb-1">2. 차력</span>
+                <span className="text-2xl font-bold text-gray-900 tracking-widest">{chasam.charyeok || '-'}</span>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <span className="block text-[10px] text-gray-400 mb-1">3. 부허본차 (본원)</span>
+                <span className="text-lg font-bold text-gray-700 tracking-wider">{chasam.buheojaBonwon || '-'}</span>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <span className="block text-[10px] text-gray-400 mb-1">4. 부허본차 (차력)</span>
+                <span className="text-lg font-bold text-gray-700 tracking-wider">{chasam.buheojaCharyeok || '-'}</span>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <span className="block text-[10px] text-gray-400 mb-1">5. 허자본차 (본원)</span>
+                <span className="text-lg font-bold text-gray-700 tracking-wider">{chasam.heojaBonwon || '-'}</span>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <span className="block text-[10px] text-gray-400 mb-1">6. 허자본차 (차력)</span>
+                <span className="text-lg font-bold text-gray-700 tracking-wider">{chasam.heojaCharyeok || '-'}</span>
+              </div>
             </div>
-            <div className="bg-gray-50 p-4 rounded-xl text-center">
-              <span className="block text-xs text-gray-400 mb-1">월주</span>
-              <span className="text-xl font-bold text-gray-800">{person.sajuWolju || '-'}</span>
-            </div>
+          ) : (
+             <div className="text-center py-8 text-gray-400 text-sm">
+                사주 명식 데이터가 없습니다.<br/>새로 추가해주세요.
+             </div>
+          )}
+
+          {/* Seamless 연동 버튼 */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <a 
+              href={generateSajucubeUrl()} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors shadow-md active:scale-[0.98]"
+            >
+              사주큐브 정밀 분석 열기 <ExternalLink className="w-4 h-4" />
+            </a>
+            <p className="text-[11px] text-center text-gray-400 leading-relaxed mt-3">
+              클릭 시 사주큐브(Sajucube)로 이동하여<br/>대운/세운 등 상세 분석을 확인합니다.
+            </p>
           </div>
-          <p className="text-xs text-center text-gray-400 mt-4">
-            ※ 상세 사주명식(Sajucube)은 Core 연동 후 구현될 예정입니다.
-          </p>
         </section>
 
         {/* Memo */}
