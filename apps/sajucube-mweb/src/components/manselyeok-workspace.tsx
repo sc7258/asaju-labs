@@ -111,6 +111,7 @@ export function ManselyeokWorkspace({
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isNativelyZoomed, setIsNativelyZoomed] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -356,6 +357,22 @@ export function ManselyeokWorkspace({
 
     return () => {
       mediaQuery.removeEventListener("change", syncPreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.visualViewport) return;
+    const handleViewportChange = () => {
+      const zoomed = window.visualViewport!.scale > 1.05;
+      setIsNativelyZoomed((prev) => (prev !== zoomed ? zoomed : prev));
+    };
+    
+    handleViewportChange();
+    window.visualViewport.addEventListener("resize", handleViewportChange);
+    window.visualViewport.addEventListener("scroll", handleViewportChange);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener("scroll", handleViewportChange);
     };
   }, []);
 
@@ -680,7 +697,7 @@ export function ManselyeokWorkspace({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={settleBackToCenter}
-          className={`relative z-0 overflow-x-hidden overflow-y-visible [touch-action:pan-y_pinch-zoom] ${isPending ? "opacity-70" : "opacity-100"}`}
+          className={`relative z-0 overflow-x-hidden overflow-y-visible ${isNativelyZoomed ? "touch-auto" : "touch-pan-y"} ${isPending ? "opacity-70" : "opacity-100"}`}
         >
           <div
             ref={trackRef}
