@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '사주덱스 (Sajudex)',
-    short_name: 'Sajudex',
+    name: 'sajudex',
+    short_name: 'sajudex',
     description: '사주 스터디 자료, 정보, 프로그램 (Sajudex & Sajucube)',
     start_url: '/',
     display: 'standalone',

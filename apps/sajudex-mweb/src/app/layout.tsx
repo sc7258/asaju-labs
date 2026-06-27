@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sajudex - 인연록",
+  title: "sajudex",
   description: "사주 기반 지인 관계 관리 인연록",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "인연록",
+    title: "sajudex",
     startupImage: [
       "/splash.png"
     ],
