@@ -40,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+    <html lang="ko" className="antialiased">
+      <body className="flex min-h-screen flex-col">
         <ServiceWorkerRegister />
         {children}
       </body>

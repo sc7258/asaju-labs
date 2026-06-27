@@ -112,6 +112,7 @@ export function ManselyeokWorkspace({
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -309,10 +310,11 @@ export function ManselyeokWorkspace({
         initialScale={1}
         minScale={1}
         maxScale={4}
-        onTransform={(ref, state) => {
+        onTransformed={(ref, state) => {
           scaleRef.current = state.scale;
+          setIsZoomed(state.scale > 1.05);
         }}
-        panning={{ disabled: false }}
+        panning={{ disabled: !isZoomed }}
         doubleClick={{ disabled: true }}
         centerOnInit={true}
         centerZoomedOut={true}
@@ -328,7 +330,7 @@ export function ManselyeokWorkspace({
         </TransformComponent>
       </TransformWrapper>
     );
-  }, [slots.current]);
+  }, [slots.current, isZoomed]);
 
   const previousChartNode = useMemo(() => {
     if (!slots.previous) {
@@ -695,7 +697,7 @@ export function ManselyeokWorkspace({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={settleBackToCenter}
-          className={`relative z-0 overflow-hidden [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
+          className={`relative z-0 overflow-x-hidden overflow-y-visible [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
         >
           <div
             ref={trackRef}
