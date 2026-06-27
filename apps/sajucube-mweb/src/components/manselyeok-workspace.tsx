@@ -680,7 +680,7 @@ export function ManselyeokWorkspace({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={settleBackToCenter}
-          className={`relative z-0 overflow-x-hidden overflow-y-visible [touch-action:pan-y] ${isPending ? "opacity-70" : "opacity-100"}`}
+          className={`relative z-0 overflow-x-hidden overflow-y-visible [touch-action:pan-y_pinch-zoom] ${isPending ? "opacity-70" : "opacity-100"}`}
         >
           <div
             ref={trackRef}
