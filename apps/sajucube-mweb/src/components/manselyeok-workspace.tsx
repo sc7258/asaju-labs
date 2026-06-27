@@ -11,7 +11,6 @@ import {
 } from "@repo/saju-core";
 import { shiftBirthTextByDays, type CalendarSelection } from "@/lib/date-navigation";
 import { HistoryNavButton } from "@repo/ui/history-nav-button";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface WorkspaceProps {
   initialState: ChasamManselyeokPageState;
@@ -112,7 +111,6 @@ export function ManselyeokWorkspace({
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -120,7 +118,6 @@ export function ManselyeokWorkspace({
   const rightHintRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const scaleRef = useRef<number>(1);
   const dragOffsetRef = useRef(0);
   const dragFrameRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
@@ -306,37 +303,15 @@ export function ManselyeokWorkspace({
 
   const currentChartNode = useMemo(() => {
     return (
-      <TransformWrapper
-        initialScale={1}
-        minScale={1}
-        maxScale={4}
-        onTransform={(ref) => {
-          scaleRef.current = ref.state.scale;
-          setIsZoomed(ref.state.scale > 1.1);
-        }}
-        onZoomStop={(ref) => {
-          if (ref.state.scale < 1.15) {
-            ref.resetTransform(150);
-            setIsZoomed(false);
-          }
-        }}
-        panning={{ disabled: !isZoomed }}
-        doubleClick={{ disabled: true }}
-        centerOnInit={true}
-        centerZoomedOut={true}
-      >
-        <TransformComponent wrapperStyle={{ width: "100%", display: "flex", justifyContent: "center" }} contentStyle={{ width: "100%", display: "flex", justifyContent: "center" }}>
-          <div className="w-full max-w-full">
-            <ChasamManselyeokChartClient
-              panels={slots.current.pageState.panels}
-              inputBirthText={slots.current.pageState.input.birthText}
-              key={getChartKey(slots.current.pageState)}
-            />
-          </div>
-        </TransformComponent>
-      </TransformWrapper>
+      <div className="w-full max-w-full">
+        <ChasamManselyeokChartClient
+          panels={slots.current.pageState.panels}
+          inputBirthText={slots.current.pageState.input.birthText}
+          key={getChartKey(slots.current.pageState)}
+        />
+      </div>
     );
-  }, [slots.current, isZoomed]);
+  }, [slots.current]);
 
   const previousChartNode = useMemo(() => {
     if (!slots.previous) {
@@ -552,7 +527,7 @@ export function ManselyeokWorkspace({
     }
 
     const nativeScale = window.visualViewport ? window.visualViewport.scale : 1;
-    if (isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05 || nativeScale > 1.05) {
+    if (isAnimating || isPending || e.touches.length !== 1 || nativeScale > 1.05) {
       return;
     }
 
@@ -565,7 +540,7 @@ export function ManselyeokWorkspace({
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     const nativeScale = window.visualViewport ? window.visualViewport.scale : 1;
-    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05 || nativeScale > 1.05) {
+    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1 || nativeScale > 1.05) {
       return;
     }
 
