@@ -1,5 +1,5 @@
 Add-Type -AssemblyName System.Drawing
-$sourcePath = "C:\Users\sc725\.gemini\antigravity-cli\brain\e65ff25c-de09-4862-ab25-1d06203fe49e\sajudex_cute_network_icon_1782532158072.jpg"
+$sourcePath = "C:\Users\sc725\.gemini\antigravity-cli\brain\e65ff25c-de09-4862-ab25-1d06203fe49e\sajudex_cute_network_square_1782532803294.jpg"
 $img = [System.Drawing.Image]::FromFile($sourcePath)
 
 # 192x192

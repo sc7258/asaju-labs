@@ -46,7 +46,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* Mobile App Container: Desktop에서는 가운데 정렬된 모바일 화면처럼 보임 */}
-        <div className="max-w-md mx-auto bg-white min-h-[100dvh] relative shadow-2xl overflow-hidden flex flex-col">
+        <div className="max-w-md mx-auto bg-white h-[100dvh] relative shadow-2xl overflow-hidden flex flex-col">
           {/* Main Content Area */}
           <main className="flex-1 overflow-y-auto">
             {children}
