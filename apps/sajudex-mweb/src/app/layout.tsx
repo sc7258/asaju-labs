@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "인연록",
+    startupImage: [
+      "/splash.png"
+    ],
   },
   formatDetection: {
     telephone: false,
