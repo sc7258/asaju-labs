@@ -12,9 +12,11 @@ export default function BottomNav() {
   const isHome = pathname === '/';
   const isSettings = pathname === '/settings';
 
+  if (pathname === '/new') return null;
+
   return (
     <>
-      <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)] pb-safe">
+      <nav className="shrink-0 relative w-full bg-white/90 backdrop-blur-md border-t border-gray-100 z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)] pb-safe">
         <div className="flex justify-around items-center h-16 px-2">
           <Link 
             href="/" 

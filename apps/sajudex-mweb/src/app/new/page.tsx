@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, User, CalendarDays, AlignLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { uuidv7 } from 'uuidv7';
@@ -153,66 +153,35 @@ export default function NewConnectionPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-gray-50 pb-24 max-w-2xl mx-auto">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+    <div className="flex flex-col min-h-[100dvh] bg-[#F8FAFC] pb-24 max-w-2xl mx-auto">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100/80 px-4 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </Link>
-          <h1 className="text-lg font-bold text-gray-900">새 인연 추가</h1>
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">새 인연 추가</h1>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? '저장중..' : '저장'}
-        </button>
+
       </header>
 
       <main className="p-5 flex flex-col gap-6 flex-1">
-        <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-5">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">이름 (필수)</label>      
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="예: 홍길동, 김대리"
-              className="w-full text-lg border-b-2 border-gray-200 focus:border-blue-600 outline-none pb-2 bg-transparent transition-colors placeholder:text-gray-300 font-medium"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">생년월일 및 시간 (필수)</label>
-            <input
-              type="tel"
-              value={birthInput}
-              onChange={handleBirthInputChange}
-              placeholder="197201261130 (연속 숫자 입력)"
-              className="w-full text-lg border-b-2 border-gray-200 focus:border-blue-600 outline-none pb-2 bg-transparent transition-colors placeholder:text-gray-300 font-medium tracking-wide"
-            />
-            <p className="text-xs text-gray-400 mt-2">시간을 모를 경우 8자리(YYYYMMDD)만 입력하세요.</p>
-          </div>
-        </section>
-
-        <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-5">
+        {/* Options Section */}
+        <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100/80 flex flex-col gap-5">
+          {/* Calendar Type Segmented Control */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">양력 / 음력</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <span className="text-sm font-bold text-gray-700">양력 / 음력</span>
+            <div className="flex bg-gray-100/80 rounded-xl p-1 shadow-inner">
               <button
                 type="button"
                 onClick={() => setIsLunar(false)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!isLunar ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${!isLunar ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 양력
               </button>
               <button
                 type="button"
                 onClick={() => setIsLunar(true)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${isLunar ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${isLunar ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 음력
               </button>
@@ -220,29 +189,30 @@ export default function NewConnectionPage() {
           </div>
 
           {isLunar && (
-            <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-              <span className="text-sm font-medium text-gray-700">윤달 여부</span>
+            <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+              <span className="text-sm font-bold text-gray-700">윤달 여부</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={isLeapMonth} onChange={(e) => setIsLeapMonth(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
               </label>
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-            <span className="text-sm font-medium text-gray-700">성별 (필수)</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+          {/* Gender Segmented Control */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+            <span className="text-sm font-bold text-gray-700">성별 (필수)</span>
+            <div className="flex bg-gray-100/80 rounded-xl p-1 shadow-inner">
               <button
                 type="button"
                 onClick={() => setGender('M')}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${gender === 'M' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${gender === 'M' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 남성
               </button>
               <button
                 type="button"
                 onClick={() => setGender('F')}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${gender === 'F' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${gender === 'F' ? 'bg-white text-rose-500 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 여성
               </button>
@@ -250,15 +220,68 @@ export default function NewConnectionPage() {
           </div>
         </section>
 
-        <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-48">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">메모 및 특이사항</label>  
+        {/* Name & Birth Input Section */}
+        <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100/80 flex flex-col gap-6">
+          {/* Name Input */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 mb-2.5">
+              <User className="w-3.5 h-3.5" /> 이름 (필수)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="예: 홍길동, 김대리"
+                className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-base font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-inner"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Birth Input */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 mb-2.5">
+              <CalendarDays className="w-3.5 h-3.5" /> 생년월일 및 시간 (필수)
+            </label>
+            <div className="relative">
+              <input
+                type="tel"
+                value={birthInput}
+                onChange={handleBirthInputChange}
+                placeholder="197201261130 (연속 숫자 입력)"
+                className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-base font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-inner tracking-widest"
+              />
+            </div>
+            <div className="flex items-start gap-1.5 mt-2.5 text-[11px] text-gray-400 leading-relaxed font-medium">
+              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <p>시간을 모를 경우 8자리(YYYYMMDD)만 입력하셔도 사주가 계산됩니다.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Memo Section */}
+        <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100/80 flex flex-col flex-1 min-h-[220px]">
+          <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 mb-3">
+            <AlignLeft className="w-3.5 h-3.5" /> 메모 및 특이사항
+          </label>  
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="연락처, 직업, 인물과의 관계나 특이사항을 자유롭게 기록하세요."
-            className="w-full flex-1 resize-none bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-300 leading-relaxed"
+            placeholder="연락처, 직업 등 특이사항을 기록하세요.&#13;&#10;&#13;&#10;💡 꿀팁: 해시태그(#가족, #회사동료)를 적어두면 예쁜 뱃지가 생기고 검색도 편해집니다."
+            className="w-full flex-1 px-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-inner resize-none leading-relaxed"
           ></textarea>
         </section>
+
+        {/* Save Button */}
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full flex items-center justify-center gap-2 px-5 py-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-base font-bold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-blue-500/20 active:scale-95"
+        >
+          <Save className="w-5 h-5" />
+          {isSaving ? '저장중..' : '저장하기'}
+        </button>
       </main>
     </div>
   );

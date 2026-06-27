@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@repo/saju-core": "workspace:^",
+    "@repo/ui": "workspace:*",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.21.0",
