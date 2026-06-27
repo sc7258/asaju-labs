@@ -330,7 +330,7 @@ export function ManselyeokWorkspace({
             width: "100%",
             display: "flex",
             justifyContent: "center",
-            maxHeight: isZoomed ? "calc(100dvh - 80px)" : "none",
+            maxHeight: isZoomed ? "100%" : "none",
           }}
           contentStyle={{ width: "100%", display: "flex", justifyContent: "center" }}
         >
@@ -688,8 +688,8 @@ export function ManselyeokWorkspace({
   }, [slots.current.paramsRecord, updateCurrentEntry]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3 relative">
-      <div className="sticky top-2 md:top-6 z-50">
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-1.5 md:gap-3 relative overflow-hidden">
+      <div className="flex-none z-50">
         <ManselyeokForm
           input={slots.current.pageState.input}
           errors={slots.current.pageState.errors}
@@ -700,7 +700,7 @@ export function ManselyeokWorkspace({
         />
       </div>
 
-      <div className="relative z-0">
+      <div className="relative z-0 flex-1 overflow-y-auto no-scrollbar pb-6">
         <div className="absolute left-0 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity hover:opacity-100 md:-left-10 md:translate-x-0">
           <div className={canShiftPrevious ? "" : "opacity-35"}>
             <HistoryNavButton direction="previous" onClick={() => void commitShift("previous")} />
@@ -717,22 +717,22 @@ export function ManselyeokWorkspace({
         >
           <div
             ref={trackRef}
-            className="flex w-[300%] will-change-transform"
+            className="flex h-full w-[300%] will-change-transform"
             style={{
               transform: "translate3d(-33.333333%,0,0)",
             }}
           >
-            <div className="w-1/3 flex-none pr-1.5">
+            <div className="h-full w-1/3 flex-none pr-1.5">
               <div
                 ref={leftHintRef}
                 className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white/50 to-transparent opacity-0"
               />
               {previousChartNode}
             </div>
-            <div className="relative w-1/3 flex-none px-0.5">
+            <div className="relative h-full w-1/3 flex-none px-0.5">
               {currentChartNode}
             </div>
-            <div className="w-1/3 flex-none pl-1.5">
+            <div className="h-full w-1/3 flex-none pl-1.5">
               <div
                 ref={rightHintRef}
                 className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white/50 to-transparent opacity-0"

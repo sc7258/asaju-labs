@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="antialiased">
-      <body className="flex min-h-screen flex-col">
+      <body className="flex h-[100dvh] flex-col overflow-hidden">
         <ServiceWorkerRegister />
         {children}
       </body>
