@@ -312,7 +312,13 @@ export function ManselyeokWorkspace({
         maxScale={4}
         onTransformed={(ref, state) => {
           scaleRef.current = state.scale;
-          setIsZoomed(state.scale > 1.05);
+          setIsZoomed(state.scale > 1.1);
+        }}
+        onZoomStop={(ref) => {
+          if (ref.state.scale < 1.15) {
+            ref.resetTransform(150);
+            setIsZoomed(false);
+          }
         }}
         panning={{ disabled: !isZoomed }}
         doubleClick={{ disabled: true }}
