@@ -701,7 +701,7 @@ export function ManselyeokWorkspace({
       </div>
 
       <div className="relative z-0 flex-1 min-h-0">
-        <div className="absolute left-2 top-1/2 z-40 -translate-y-1/2 opacity-70 transition-opacity hover:opacity-100 md:-left-10">
+        <div className="absolute left-0 top-1/2 z-40 -translate-y-1/2 -translate-x-[40%] md:-translate-x-0 opacity-70 transition-opacity hover:opacity-100 md:-left-10">
           <div className={canShiftPrevious ? "" : "opacity-35"}>
             <HistoryNavButton direction="previous" onClick={() => void commitShift("previous")} />
           </div>
@@ -744,7 +744,7 @@ export function ManselyeokWorkspace({
           </div>
         </div>
 
-        <div className="absolute right-2 top-1/2 z-40 -translate-y-1/2 opacity-70 transition-opacity hover:opacity-100 md:-right-10">
+        <div className="absolute right-0 top-1/2 z-40 -translate-y-1/2 translate-x-[40%] md:translate-x-0 opacity-70 transition-opacity hover:opacity-100 md:-right-10">
           <div className={canShiftNext ? "" : "opacity-35"}>
             <HistoryNavButton direction="next" onClick={() => void commitShift("next")} />
           </div>
