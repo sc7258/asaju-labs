@@ -310,9 +310,9 @@ export function ManselyeokWorkspace({
         initialScale={1}
         minScale={1}
         maxScale={4}
-        onTransformed={(ref, state) => {
-          scaleRef.current = state.scale;
-          setIsZoomed(state.scale > 1.1);
+        onTransform={(ref) => {
+          scaleRef.current = ref.state.scale;
+          setIsZoomed(ref.state.scale > 1.1);
         }}
         onZoomStop={(ref) => {
           if (ref.state.scale < 1.15) {
