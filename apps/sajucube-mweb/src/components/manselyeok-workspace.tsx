@@ -656,7 +656,7 @@ export function ManselyeokWorkspace({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 md:gap-3 relative">
-      <div className="relative z-50">
+      <div className="sticky top-2 md:top-6 z-50">
         <ManselyeokForm
           input={slots.current.pageState.input}
           errors={slots.current.pageState.errors}
