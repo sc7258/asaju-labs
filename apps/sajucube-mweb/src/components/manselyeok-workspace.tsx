@@ -551,7 +551,8 @@ export function ManselyeokWorkspace({
       document.activeElement.blur();
     }
 
-    if (isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05) {
+    const nativeScale = window.visualViewport ? window.visualViewport.scale : 1;
+    if (isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05 || nativeScale > 1.05) {
       return;
     }
 
@@ -563,7 +564,8 @@ export function ManselyeokWorkspace({
   }, [isAnimating, isPending]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05) {
+    const nativeScale = window.visualViewport ? window.visualViewport.scale : 1;
+    if (!touchStartRef.current || isAnimating || isPending || e.touches.length !== 1 || scaleRef.current > 1.05 || nativeScale > 1.05) {
       return;
     }
 
