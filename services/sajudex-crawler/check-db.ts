@@ -1,0 +1,1 @@
+﻿import { PrismaClient } from '@repo/db-schema'; async function main() { const prisma = new PrismaClient(); console.log('RawAstrodatabank:', await prisma.rawAstroDatabank.count()); console.log('CuratedPerson:', await prisma.curatedPerson.count()); } main().catch(console.error).finally(()=>process.exit(0));

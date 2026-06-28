@@ -1,0 +1,1 @@
+﻿import { PrismaClient } from '@repo/db-schema'; async function main() { const prisma = new PrismaClient(); const result = await prisma.curatedPerson.groupBy({ by: ['source'], _count: { source: true } }); console.log(result); } main().catch(console.error).finally(()=>process.exit(0));

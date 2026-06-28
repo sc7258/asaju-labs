@@ -146,6 +146,26 @@ function parseRawWikidataEntity(rawRow: RawWikipedia): WikidataEntity {
   return entity as WikidataEntity;
 }
 
+export function extractRequiredQids(rawRow: RawWikipedia): string[] {
+  try {
+    const entity = parseRawWikidataEntity(rawRow);
+    const qids = new Set<string>();
+    
+    const p27 = getFirstEntityIdClaim(entity, "P27");
+    if (p27) qids.add(p27);
+    
+    const p19 = getFirstEntityIdClaim(entity, "P19");
+    if (p19) qids.add(p19);
+    
+    const p106 = getFirstEntityIdClaim(entity, "P106");
+    if (p106) qids.add(p106);
+    
+    return Array.from(qids);
+  } catch {
+    return [];
+  }
+}
+
 function pickDisplayName(entity: WikidataEntity, fallbackTitle: string): string {
   return (
     normalizeOptionalText(entity.labels?.ko?.value) ??

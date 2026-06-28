@@ -10,6 +10,35 @@ export class WikidataEntityReferenceResolver {
     return entity ? pickEntityLabel(entity) : null;
   }
 
+  async preloadEntities(qids: string[]): Promise<void> {
+    const uniqueQids = [...new Set(qids)].filter((qid) => !this.entityCache.has(qid) && /^Q\d+$/.test(qid.trim().toUpperCase()));
+    
+    if (uniqueQids.length === 0) {
+      return;
+    }
+
+    const CHUNK_SIZE = 50;
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueQids.length; i += CHUNK_SIZE) {
+      chunks.push(uniqueQids.slice(i, i + CHUNK_SIZE));
+    }
+
+    await Promise.all(
+      chunks.map(async (chunk) => {
+        try {
+          const entities = await this.wikidataClient.getEntities(chunk);
+          for (const qid of chunk) {
+            this.entityCache.set(qid, entities[qid] ?? null);
+          }
+        } catch {
+          for (const qid of chunk) {
+            this.entityCache.set(qid, null);
+          }
+        }
+      })
+    );
+  }
+
   async resolveEntity(qid: string | null | undefined): Promise<WikidataEntity | null> {
     if (!qid) {
       return null;

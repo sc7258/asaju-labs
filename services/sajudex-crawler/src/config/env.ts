@@ -47,7 +47,7 @@ function loadDotenvFiles(): void {
   ];
 
   for (const envPath of candidatePaths) {
-    dotenv.config({ path: envPath, quiet: true });
+    dotenv.config({ path: envPath, override: true });
   }
 }
 

@@ -5,7 +5,7 @@ import { CuratedPersonRepository } from "../repositories/curated-person-reposito
 import { RawWikipediaRepository } from "../repositories/raw-wikipedia-repository";
 import { WikidataClient } from "../sources/wikidata/wikidata-client";
 import { WikidataEntityReferenceResolver } from "../sources/wikidata/wikidata-entity-reference-resolver";
-import { transformRawWikipediaToCuratedPerson } from "../sources/wikidata/wikidata-transformer";
+import { extractRequiredQids, transformRawWikipediaToCuratedPerson } from "../sources/wikidata/wikidata-transformer";
 
 export interface TransformWikidataResult {
   requestedCount: number;
@@ -26,6 +26,41 @@ export async function transformPendingWikidataRawRows(
   });
   const referenceResolver = new WikidataEntityReferenceResolver(wikidataClient);
   const candidates = await rawWikipediaRepository.findPendingForTransform(limit);
+
+  // --- PRELOAD PHASE ---
+  const initialQids = new Set<string>();
+  for (const rawRow of candidates) {
+    for (const qid of extractRequiredQids(rawRow)) {
+      initialQids.add(qid);
+    }
+  }
+  
+  if (initialQids.size > 0) {
+    console.log(`Preloading ${initialQids.size} QIDs...`);
+    await referenceResolver.preloadEntities(Array.from(initialQids));
+    
+    // Stage 2: Extract P17 from resolved P19 entities
+    const countryQids = new Set<string>();
+    for (const qid of initialQids) {
+      const entity = await referenceResolver.resolveEntity(qid);
+      if (entity && entity.claims?.["P17"]) {
+        const claims = entity.claims["P17"];
+        if (Array.isArray(claims)) {
+          for (const claim of claims) {
+            const mainsnak = (claim as any).mainsnak;
+            if (mainsnak?.datavalue?.value?.id) {
+              countryQids.add(mainsnak.datavalue.value.id);
+            }
+          }
+        }
+      }
+    }
+    if (countryQids.size > 0) {
+      console.log(`Preloading ${countryQids.size} country QIDs...`);
+      await referenceResolver.preloadEntities(Array.from(countryQids));
+    }
+  }
+  // ---------------------
 
   let succeededCount = 0;
   let failedCount = 0;

@@ -1,0 +1,1 @@
+﻿import { PrismaClient } from '@repo/db-schema'; async function main() { const prisma = new PrismaClient(); console.log('WikidataPeopleSeed:', await prisma.wikidataPeopleSeed.count()); console.log('RawWikipedia:', await prisma.rawWikipedia.count()); } main().catch(console.error).finally(()=>process.exit(0));
