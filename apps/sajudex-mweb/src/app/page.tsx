@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { Calendar, ChevronRight, Search, UserPlus, Heart } from 'lucide-react';
+import { Calendar, ChevronRight, Search, UserPlus, Heart, Sun, Moon } from 'lucide-react';
 
 const extractHashtags = (memo?: string): string[] => {
   if (!memo) return [];
@@ -21,6 +21,16 @@ const getOhaengColor = (char: string) => {
   return '';
 };
 
+const getAvatarTheme = (char?: string) => {
+  if (!char) return 'from-blue-500 to-blue-600 shadow-blue-500/20';
+  if (['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'].includes(char)) return 'from-emerald-500 to-emerald-600 shadow-emerald-500/20';
+  if (['병', '정', '사', '오', '丙', '丁', '巳', '午'].includes(char)) return 'from-rose-500 to-rose-600 shadow-rose-500/20';
+  if (['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'].includes(char)) return 'from-amber-500 to-amber-600 shadow-amber-500/20';
+  if (['경', '신', '유', '庚', '辛', '申', '酉'].includes(char)) return 'from-slate-400 to-slate-500 shadow-slate-400/20';
+  if (['임', '계', '해', '자', '壬', '癸', '亥', '子'].includes(char)) return 'from-slate-700 to-slate-800 shadow-slate-800/20';
+  return 'from-blue-500 to-blue-600 shadow-blue-500/20';
+};
+
 const SajuText = ({ text }: { text: string }) => {
   if (!text || text === '-') return <span>{text}</span>;
   return (
@@ -34,7 +44,7 @@ const SajuText = ({ text }: { text: string }) => {
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAcquaintanceOnly, setIsAcquaintanceOnly] = useState(false);
+  const [isAcquaintanceOnly, setIsAcquaintanceOnly] = useState(true);
 
   const persons = useLiveQuery(async () => {
     const allPersons = await db.persons.orderBy('createdAt').reverse().toArray();
@@ -133,6 +143,9 @@ export default function Home() {
             {persons.map(person => {
               const chasam = person.sajuData?.chasam;
               const tags = extractHashtags(person.memo);
+              const bonwonStem = chasam?.bonwon?.[0] || person.sajuIlju?.[0];
+              const avatarTheme = getAvatarTheme(bonwonStem);
+              
               return (
                 <Link 
                   key={person.id} 
@@ -141,7 +154,7 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between w-full gap-3">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-base font-bold shadow-sm shadow-blue-500/20 shrink-0">
+                      <div className={`w-11 h-11 rounded-full bg-gradient-to-br text-white flex items-center justify-center text-base font-bold shadow-sm shrink-0 ${avatarTheme}`}>
                         {person.name.charAt(0)}
                       </div>
                       <div className="flex flex-col justify-center overflow-hidden">
@@ -151,8 +164,17 @@ export default function Home() {
                             <div className="flex items-center gap-1 shrink-0">
                               {person.gender === 'M' && <span className="text-blue-500 font-bold text-[12px] leading-none mb-[1px]">♂</span>}
                               {person.gender === 'F' && <span className="text-rose-500 font-bold text-[12px] leading-none mb-[1px]">♀</span>}
-                              <span className="text-[10px] font-medium text-gray-400 tracking-wide">
-                                {person.birthDate ? `${person.birthDate.slice(2)}${person.birthTime ? ` ${person.birthTime}` : ''}` : ''}
+                              <span className="flex items-center gap-1 text-[10px] font-medium text-gray-400 tracking-wide">
+                                {person.birthDate && (
+                                  <>
+                                    {person.isLunar ? (
+                                      <Moon className={`w-3 h-3 ${person.isLeapMonth ? 'text-slate-400 fill-slate-200 drop-shadow-sm' : 'text-indigo-400 fill-indigo-100'}`} />
+                                    ) : (
+                                      <Sun className="w-3 h-3 text-amber-500 fill-amber-100" />
+                                    )}
+                                    <span>{person.birthDate}{person.birthTime ? ` ${person.birthTime}` : ''}</span>
+                                  </>
+                                )}
                               </span>
                             </div>
                           </div>
@@ -170,18 +192,18 @@ export default function Home() {
                         
                         {/* 6판 명식 뱃지 (첫째 열 바로 아래 배치) */}
                         {chasam && (
-                          <div className="flex items-center gap-1.5 mt-1.5">
+                          <div className="flex items-center gap-0.5 mt-1 overflow-x-auto no-scrollbar pb-1">
                             {/* 부허 */}
-                            <span className="text-[10px] px-2 py-0.5 border border-slate-200 bg-slate-50 rounded-full shadow-sm tracking-widest opacity-75"><SajuText text={chasam.buheojaBonwon || '-'} /></span>
-                            <span className="text-[10px] px-2 py-0.5 border border-slate-200 bg-slate-50 rounded-full shadow-sm tracking-widest opacity-75"><SajuText text={chasam.buheojaCharyeok || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[9px] px-1 py-0.5 border border-slate-200 bg-slate-50 rounded shadow-sm opacity-75"><SajuText text={chasam.buheojaBonwon || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[9px] px-1 py-0.5 border border-slate-200 bg-slate-50 rounded shadow-sm opacity-75"><SajuText text={chasam.buheojaCharyeok || '-'} /></span>
                             
                             {/* 본원 / 차력 */}
-                            <span className="text-[11px] font-black px-2.5 py-0.5 border border-slate-200 bg-white rounded-full shadow-sm tracking-widest"><SajuText text={chasam.bonwon || '-'} /></span>
-                            <span className="text-[11px] font-black px-2.5 py-0.5 border border-slate-200 bg-white rounded-full shadow-sm tracking-widest"><SajuText text={chasam.charyeok || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 border border-slate-200 bg-white rounded shadow-sm text-gray-800"><SajuText text={chasam.bonwon || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 border border-slate-200 bg-white rounded shadow-sm text-gray-800"><SajuText text={chasam.charyeok || '-'} /></span>
 
                             {/* 허자 */}
-                            <span className="text-[10px] px-2 py-0.5 border border-dashed border-slate-300 bg-slate-50 rounded-full shadow-sm tracking-widest opacity-75"><SajuText text={chasam.heojaBonwon || '-'} /></span>
-                            <span className="text-[10px] px-2 py-0.5 border border-dashed border-slate-300 bg-slate-50 rounded-full shadow-sm tracking-widest opacity-75"><SajuText text={chasam.heojaCharyeok || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[9px] px-1 py-0.5 border border-dashed border-slate-300 bg-slate-50 rounded shadow-sm opacity-75"><SajuText text={chasam.heojaBonwon || '-'} /></span>
+                            <span className="whitespace-nowrap flex-shrink-0 text-[9px] px-1 py-0.5 border border-dashed border-slate-300 bg-slate-50 rounded shadow-sm opacity-75"><SajuText text={chasam.heojaCharyeok || '-'} /></span>
                           </div>
                         )}
                       </div>

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, User, CalendarDays, AlignLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { uuidv7 } from 'uuidv7';
 import { getChasamManselyeokPageState, calculateSajuCode } from '@repo/saju-core';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 function formatBirthInput(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 12);
@@ -21,8 +21,12 @@ function formatBirthInput(value: string) {
   return formatted;
 }
 
-export default function NewConnectionPage() {
+export default function EditConnectionPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
+  const person = useLiveQuery(() => db.persons.get(id), [id]);
 
   const [name, setName] = useState('');
   const [birthInput, setBirthInput] = useState('');
@@ -32,6 +36,21 @@ export default function NewConnectionPage() {
   const [memo, setMemo] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (person && !isLoaded) {
+      setName(person.name);
+      const bDate = person.birthDate.replace(/-/g, '');
+      const bTime = person.birthTime ? person.birthTime.replace(':', '') : '';
+      setBirthInput(formatBirthInput(bDate + bTime));
+      setIsLunar(person.isLunar || false);
+      setIsLeapMonth(person.isLeapMonth || false);
+      setGender(person.gender || 'M');
+      setMemo(person.memo || '');
+      setIsLoaded(true);
+    }
+  }, [person, isLoaded]);
 
   const handleBirthInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatBirthInput(e.target.value);
@@ -125,8 +144,7 @@ export default function NewConnectionPage() {
         return;
       }
 
-      await db.persons.add({
-        id: uuidv7(),
+      await db.persons.update(id, {
         name,
         birthDate,
         birthTime,
@@ -138,28 +156,35 @@ export default function NewConnectionPage() {
         sajuData: { chasam: chasamData },
         ...ids,
         memo,
-        createdAt: new Date(),
         updatedAt: new Date()
       });
 
-      router.push('/');
+      router.push(`/person/${id}`);
       router.refresh();
     } catch (error) {
-      console.error('Failed to save connection:', error);
+      console.error('Failed to update connection:', error);
       alert('저장 중 오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
     }
   };
 
+  if (person === undefined || !isLoaded) {
+    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+  }
+
+  if (person === null) {
+    return <div className="p-6 text-center text-gray-500">인연 정보를 찾을 수 없습니다.</div>;
+  }
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-[#F8FAFC] pb-24 max-w-2xl mx-auto">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100/80 px-4 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+          <Link href={`/person/${id}`} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </Link>
-          <h1 className="text-lg font-bold text-gray-900 tracking-tight">새 인연 추가</h1>
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">인연 정보 수정</h1>
         </div>
 
       </header>
@@ -234,7 +259,6 @@ export default function NewConnectionPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="예: 홍길동, 김대리"
                 className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-base font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-inner"
-                autoFocus
               />
             </div>
           </div>
@@ -280,7 +304,7 @@ export default function NewConnectionPage() {
           className="w-full flex items-center justify-center gap-2 px-5 py-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-base font-bold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-blue-500/20 active:scale-95"
         >
           <Save className="w-5 h-5" />
-          {isSaving ? '저장중..' : '저장하기'}
+          {isSaving ? '저장중..' : '수정 완료하기'}
         </button>
       </main>
     </div>

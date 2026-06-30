@@ -3,7 +3,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Trash2, Calendar, User as UserIcon, AlignLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Trash2, Calendar, User as UserIcon, AlignLeft, ExternalLink, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getChasamManselyeokPageState, type ChasamManselyeokPageState } from '@repo/saju-core';
@@ -83,12 +83,20 @@ export default function PersonDetailPage() {
           </Link>
           <h1 className="text-lg font-bold text-gray-900">상세 정보</h1>
         </div>
-        <button
-          onClick={handleDelete}
-          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/person/${id}/edit`}
+            className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+          >
+            <Pencil className="w-5 h-5" />
+          </Link>
+          <button
+            onClick={handleDelete}
+            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       <main className="p-5 flex flex-col gap-6 flex-1 max-w-2xl mx-auto w-full">

@@ -17,53 +17,52 @@ export function getSexagenaryIndex(pillar: string): number {
   return index;
 }
 
-/**
- * 년주, 월주, 일주를 입력받아 0 ~ 43199 사이의 고유하고 결정론적인 MasterSaju ID를 반환합니다.
- * ID = (년주 인덱스 * 12 * 60) + (월지 인덱스 * 60) + 일주 인덱스
- * 
- * @param yearPillar 년주 (예: '甲子')
- * @param monthPillar 월주 (예: '丙寅')
- * @param dayPillar 일주 (예: '戊辰')
- * @returns MasterSaju 테이블의 고유 Int ID
- */
-export function calculateMasterSajuId(yearPillar: string, monthPillar: string, dayPillar: string): number {
-  const yearIndex = getSexagenaryIndex(yearPillar);
-  
-  // 월주는 년주에 종속되므로 60갑자 인덱스가 아닌 지지(Month Branch)의 인덱스(0~11)만 사용합니다.
-  // 자월=0, 축월=1, ... 해월=11
-  const monthBranch = monthPillar.charAt(1);
-  const monthIndex = BRANCHES.indexOf(monthBranch);
-  
-  if (monthIndex === -1) {
-    throw new Error(`Invalid month branch: ${monthBranch} in ${monthPillar}`);
-  }
+export function getStemIndex(stem: string): number {
+  const index = STEMS.indexOf(stem);
+  if (index === -1) throw new Error(`Invalid stem: ${stem}`);
+  return index;
+}
 
-  const dayIndex = getSexagenaryIndex(dayPillar);
+export function getBranchIndex(branch: string): number {
+  const index = BRANCHES.indexOf(branch);
+  if (index === -1) throw new Error(`Invalid branch: ${branch}`);
+  return index;
+}
 
-  // 60 * 12 * 60 체계로 계산
-  const id = (yearIndex * 12 * 60) + (monthIndex * 60) + dayIndex;
-  
-  return id;
+export function pillarToHex(pillar: string): string {
+  if (pillar.length !== 2) throw new Error(`Invalid pillar length: ${pillar}`);
+  const s = getStemIndex(pillar.charAt(0));
+  const b = getBranchIndex(pillar.charAt(1));
+  return s.toString(16).toUpperCase() + b.toString(16).toUpperCase();
 }
 
 /**
- * MasterSaju ID를 역산하여 다시 [년주, 월주(지지), 일주] 형태의 정보를 도출하는 유틸리티입니다.
- * 월간(Month Stem)은 년간(Year Stem)의 공식(오호둔)에 의해 결정되므로 여기서는 월지만 도출합니다.
+ * 년주, 월주, 일주를 입력받아 6자리 Hex 문자열로 된 Saju Code를 반환합니다.
+ * 포맷: {연간}{연지}{월간}{월지}{일간}{일지} (각 1자리 16진수)
+ * 예: 甲子丙寅戊辰 -> 002244
  */
-export function parseMasterSajuId(id: number) {
-  if (id < 0 || id > 43199) {
-    throw new Error('ID must be between 0 and 43199');
+export function calculateSajuCode(yearPillar: string, monthPillar: string, dayPillar: string): string {
+  return pillarToHex(yearPillar) + pillarToHex(monthPillar) + pillarToHex(dayPillar);
+}
+
+/**
+ * Saju Code (예: '002244')를 역산하여 다시 [년주, 월주, 일주] 형태의 정보를 도출하는 유틸리티입니다.
+ */
+export function parseSajuCode(code: string) {
+  if (code.length !== 6) {
+    throw new Error('Saju Code must be a 6-character string');
   }
 
-  const dayIndex = id % 60;
-  const remainingAfterDay = Math.floor(id / 60);
-  
-  const monthIndex = remainingAfterDay % 12;
-  const yearIndex = Math.floor(remainingAfterDay / 12);
+  const sYear = parseInt(code.charAt(0), 16);
+  const bYear = parseInt(code.charAt(1), 16);
+  const sMonth = parseInt(code.charAt(2), 16);
+  const bMonth = parseInt(code.charAt(3), 16);
+  const sDay = parseInt(code.charAt(4), 16);
+  const bDay = parseInt(code.charAt(5), 16);
 
   return {
-    yearPillar: SEXAGENARY_CYCLE[yearIndex],
-    monthBranch: BRANCHES[monthIndex], // 월간은 별도 오호둔 공식으로 계산해야 함
-    dayPillar: SEXAGENARY_CYCLE[dayIndex]
+    yearPillar: STEMS[sYear] + BRANCHES[bYear],
+    monthPillar: STEMS[sMonth] + BRANCHES[bMonth],
+    dayPillar: STEMS[sDay] + BRANCHES[bDay]
   };
 }

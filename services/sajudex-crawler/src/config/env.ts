@@ -32,7 +32,7 @@ export function loadCrawlerEnv(): CrawlerEnv {
     crawlerUserAgent:
       process.env.CRAWLER_USER_AGENT ??
       "asaju-labs/sajudex-crawler contact@example.com",
-    crawlerBatchSize: readPositiveIntegerEnv("CRAWLER_BATCH_SIZE", 100),
+    crawlerBatchSize: readPositiveIntegerEnv("CRAWLER_BATCH_SIZE", 10000),
     crawlerMaxRetries: readPositiveIntegerEnv("CRAWLER_MAX_RETRIES", 3),
     crawlerCron: process.env.CRAWLER_CRON ?? "0 3 * * *",
   };

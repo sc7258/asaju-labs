@@ -725,7 +725,7 @@ export async function createManselyeokViewModel(
         ? "양력 기준 입력"
         : `음력 기준 입력${input.isLeapMonth ? " (윤달)" : ""}`,
     pillars: [
-      {
+      hasBirthTime ? {
         key: "hour",
         title: "시주",
         stem: saju.pillars.hour[0] ?? "",
@@ -740,7 +740,7 @@ export async function createManselyeokViewModel(
         branchElementLabel: getElementLabel(
           getBranchElement(saju.pillars.hour[1] ?? ""),
         ).korean,
-      },
+      } : createUnknownHourPillar(),
       {
         key: "day",
         title: "일주",

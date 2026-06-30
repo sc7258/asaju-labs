@@ -27,12 +27,12 @@ export interface UpsertCuratedPersonInput {
   imageUrl?: string | null;
   rawWikipediaId: number;
   sajuComputedAt?: Date | null;
-  bonwonSajuId?: number | null;
-  charyeokSajuId?: number | null;
-  buheojaBonwonSajuId?: number | null;
-  buheojaCharyeokSajuId?: number | null;
-  heojaBonwonSajuId?: number | null;
-  heojaCharyeokSajuId?: number | null;
+  bonwonSajuCode?: string | null;
+  charyeokSajuCode?: string | null;
+  buheojaBonwonSajuCode?: string | null;
+  buheojaCharyeokSajuCode?: string | null;
+  heojaBonwonSajuCode?: string | null;
+  heojaCharyeokSajuCode?: string | null;
 }
 
 type PrismaCuratedPersonClient = PrismaClient | Prisma.TransactionClient;
@@ -62,12 +62,12 @@ export class CuratedPersonRepository {
       imageUrl: input.imageUrl,
       rawWikipediaId: input.rawWikipediaId,
       sajuComputedAt: input.sajuComputedAt,
-      bonwonSajuId: input.bonwonSajuId,
-      charyeokSajuId: input.charyeokSajuId,
-      buheojaBonwonSajuId: input.buheojaBonwonSajuId,
-      buheojaCharyeokSajuId: input.buheojaCharyeokSajuId,
-      heojaBonwonSajuId: input.heojaBonwonSajuId,
-      heojaCharyeokSajuId: input.heojaCharyeokSajuId,
+      bonwonSajuCode: input.bonwonSajuCode,
+      charyeokSajuCode: input.charyeokSajuCode,
+      buheojaBonwonSajuCode: input.buheojaBonwonSajuCode,
+      buheojaCharyeokSajuCode: input.buheojaCharyeokSajuCode,
+      heojaBonwonSajuCode: input.heojaBonwonSajuCode,
+      heojaCharyeokSajuCode: input.heojaCharyeokSajuCode,
     };
 
     return this.db.curatedPerson.upsert({

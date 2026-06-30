@@ -5,7 +5,7 @@ import {
 } from "@repo/db-schema";
 
 import { calculateSajuPlatesForSolarDate } from "../../domain/saju-pillar-calculator";
-import { calculateMasterSajuId } from "@repo/saju-core";
+import { calculateSajuCode } from "@repo/saju-core";
 import { UpsertCuratedPersonInput } from "../../repositories/curated-person-repository";
 import { WikidataEntity } from "./wikidata-client";
 import { WikidataEntityReferenceResolver } from "./wikidata-entity-reference-resolver";
@@ -62,7 +62,10 @@ export async function transformRawWikipediaToCuratedPerson(
     "P106",
     referenceResolver,
   );
-  const imageUrl = getFirstTextClaim(entity, "P18");
+  const imageFileName = getFirstTextClaim(entity, "P18");
+  const imageUrl = imageFileName 
+    ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(imageFileName.replace(/ /g, "_"))}`
+    : null;
 
   const curatedPerson: UpsertCuratedPersonInput = {
     displayName,
@@ -81,7 +84,7 @@ export async function transformRawWikipediaToCuratedPerson(
     occupationName,
     source: "WIKIDATA",
     sourceId: entity.id,
-    sourceUrl: rawRow.sourceUrl,
+    sourceUrl: pickWikipediaUrl(entity) ?? rawRow.sourceUrl,
     imageUrl,
     rawWikipediaId: rawRow.id,
     sajuComputedAt: null,
@@ -107,15 +110,15 @@ export async function transformRawWikipediaToCuratedPerson(
         const dayPillar = plate.sajuDayStem + plate.sajuDayBranch;
         
         if (yearPillar.length === 2 && monthPillar.length === 2 && dayPillar.length === 2) {
-          const masterId = calculateMasterSajuId(yearPillar, monthPillar, dayPillar);
+          const sajuCode = calculateSajuCode(yearPillar, monthPillar, dayPillar);
 
           switch (plate.plateType) {
-            case 'BONWON': curatedPerson.bonwonSajuId = masterId; break;
-            case 'CHARYEOK': curatedPerson.charyeokSajuId = masterId; break;
-            case 'BUHEOJA_BONWON': curatedPerson.buheojaBonwonSajuId = masterId; break;
-            case 'BUHEOJA_CHARYEOK': curatedPerson.buheojaCharyeokSajuId = masterId; break;
-            case 'HEOJA_BONWON': curatedPerson.heojaBonwonSajuId = masterId; break;
-            case 'HEOJA_CHARYEOK': curatedPerson.heojaCharyeokSajuId = masterId; break;
+            case 'BONWON': curatedPerson.bonwonSajuCode = sajuCode; break;
+            case 'CHARYEOK': curatedPerson.charyeokSajuCode = sajuCode; break;
+            case 'BUHEOJA_BONWON': curatedPerson.buheojaBonwonSajuCode = sajuCode; break;
+            case 'BUHEOJA_CHARYEOK': curatedPerson.buheojaCharyeokSajuCode = sajuCode; break;
+            case 'HEOJA_BONWON': curatedPerson.heojaBonwonSajuCode = sajuCode; break;
+            case 'HEOJA_CHARYEOK': curatedPerson.heojaCharyeokSajuCode = sajuCode; break;
           }
         }
       }
@@ -174,6 +177,20 @@ function pickDisplayName(entity: WikidataEntity, fallbackTitle: string): string 
     normalizeOptionalText(entity.sitelinks?.enwiki?.title) ??
     fallbackTitle
   );
+}
+
+function pickWikipediaUrl(entity: WikidataEntity): string | null {
+  const kowiki = entity.sitelinks?.kowiki;
+  if (kowiki) {
+    return kowiki.url || `https://ko.wikipedia.org/wiki/${encodeURIComponent(kowiki.title.replace(/ /g, "_"))}`;
+  }
+  
+  const enwiki = entity.sitelinks?.enwiki;
+  if (enwiki) {
+    return enwiki.url || `https://en.wikipedia.org/wiki/${encodeURIComponent(enwiki.title.replace(/ /g, "_"))}`;
+  }
+  
+  return null;
 }
 
 function resolveBirthCalendarStatus(
