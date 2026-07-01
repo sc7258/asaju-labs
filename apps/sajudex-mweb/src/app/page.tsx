@@ -42,6 +42,16 @@ const SajuText = ({ text }: { text: string }) => {
   );
 };
 
+const HANJA_TO_HANGUL: Record<string, string> = {
+  "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무", "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
+  "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사", "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"
+};
+
+const convertHanjaToHangul = (str?: string) => {
+  if (!str) return "";
+  return str.split("").map(char => HANJA_TO_HANGUL[char] || char).join("");
+};
+
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAcquaintanceOnly, setIsAcquaintanceOnly] = useState(true);
@@ -60,17 +70,20 @@ export default function Home() {
       const lowerQuery = searchQuery.toLowerCase();
       
       if (person.name.toLowerCase().includes(lowerQuery)) return true;
-      if (person.sajuIlju && person.sajuIlju.includes(lowerQuery)) return true;
-      if (person.sajuWolju && person.sajuWolju.includes(lowerQuery)) return true;
+      if (person.sajuIlju && (person.sajuIlju.includes(lowerQuery) || convertHanjaToHangul(person.sajuIlju).includes(lowerQuery))) return true;
+      if (person.sajuWolju && (person.sajuWolju.includes(lowerQuery) || convertHanjaToHangul(person.sajuWolju).includes(lowerQuery))) return true;
       if (person.memo && person.memo.toLowerCase().includes(lowerQuery)) return true;
+      
       if (person.sajuData?.chasam) {
          const { buheojaBonwon, buheojaCharyeok, heojaBonwon, heojaCharyeok } = person.sajuData.chasam;
-         if (buheojaBonwon?.includes(lowerQuery) || buheojaCharyeok?.includes(lowerQuery) || 
-             heojaBonwon?.includes(lowerQuery) || heojaCharyeok?.includes(lowerQuery)) {
-             return true;
-         }
+         if (buheojaBonwon && (buheojaBonwon.includes(lowerQuery) || convertHanjaToHangul(buheojaBonwon).includes(lowerQuery))) return true;
+         if (buheojaCharyeok && (buheojaCharyeok.includes(lowerQuery) || convertHanjaToHangul(buheojaCharyeok).includes(lowerQuery))) return true;
+         if (heojaBonwon && (heojaBonwon.includes(lowerQuery) || convertHanjaToHangul(heojaBonwon).includes(lowerQuery))) return true;
+         if (heojaCharyeok && (heojaCharyeok.includes(lowerQuery) || convertHanjaToHangul(heojaCharyeok).includes(lowerQuery))) return true;
       }
       return false;
+
+
     });
   }, [searchQuery, isAcquaintanceOnly]);
 
