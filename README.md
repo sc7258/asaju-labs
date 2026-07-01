@@ -37,6 +37,29 @@ pnpm install
 - `pnpm turbo run build`: 전체 프로젝트 병렬 빌드 및 캐싱
 - `pnpm turbo run lint`: 전체 코드 린트 검사
 
+
+--- 
+
+## ☁️ Deployment (Vercel) 
+
+이 프로젝트는 Turborepo 모노레포 구조이므로, 로컬 환경에서 `npx vercel` 명령어를 통한 CLI 직접 배포는 권장하지 않습니다 (공통 패키지 누락 및 설정 충돌 원인).
+**반드시 Vercel 대시보드와 GitHub 자동 연동을 통해 배포해야 합니다.**
+
+### `sajucube-mweb` 및 `sajudex-mweb` 배포 가이드
+
+1. **GitHub 연동:** `main` 브랜치에 코드를 Push하면 Vercel이 변경사항을 감지하여 자동 빌드합니다.
+2. **Vercel 대시보드 신규 프로젝트 셋업 (최초 1회):**
+   - Vercel 대시보드에서 `Add New...` > `Project` 선택.
+   - GitHub의 `asaju-labs` 리포지토리를 Import 합니다.
+   - **중요:** Project Name을 짓고 (예: `sajudex`), **Root Directory** 항목을 수정(`Edit`)하여 해당 앱 폴더(예: `apps/sajudex-mweb`)를 정확히 선택합니다.
+   - Framework Preset은 **Next.js**로 자동 인식됩니다.
+   - `Deploy` 버튼을 누르면 Vercel이 Root를 기준으로 공통 패키지(`packages/*`)를 모두 찾아내어 정상적으로 빌드합니다.
+
+> 💡 **강제 수동 배포가 필요한 경우:** 로컬에서 빈 커밋(`git commit --allow-empty -m "chore: trigger deployment"`)을 생성하여 Push하면, 대시보드에 접근하지 않고도 Vercel 파이프라인을 트리거할 수 있습니다.
+
+--- 
+
+
 ## 🧭 Current Handoff
 
 현재 이어받을 주요 작업은 `services/sajudex-crawler`입니다. 다음 세션에서는 [services/sajudex-crawler/HANDOFF.md](./services/sajudex-crawler/HANDOFF.md)를 먼저 확인하세요.
