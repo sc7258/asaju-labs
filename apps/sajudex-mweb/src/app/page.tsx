@@ -13,22 +13,22 @@ const extractHashtags = (memo?: string): string[] => {
 };
 
 const getOhaengColor = (char: string) => {
-  if (['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'].includes(char)) return 'text-emerald-600';
-  if (['병', '정', '사', '오', '丙', '丁', '巳', '午'].includes(char)) return 'text-rose-600';
-  if (['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'].includes(char)) return 'text-amber-600';
-  if (['경', '신', '유', '庚', '辛', '申', '酉'].includes(char)) return 'text-slate-400';
-  if (['임', '계', '해', '자', '壬', '癸', '亥', '子'].includes(char)) return 'text-slate-900';
-  return '';
+  if (['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'].includes(char)) return 'text-[#62b388]';
+  if (['병', '정', '사', '오', '丙', '丁', '巳', '午'].includes(char)) return 'text-[#d65779]';
+  if (['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'].includes(char)) return 'text-[#d4a83f]';
+  if (['경', '신', '유', '庚', '辛', '申', '酉'].includes(char)) return 'text-[#67718e]';
+  if (['임', '계', '해', '자', '壬', '癸', '亥', '子'].includes(char)) return 'text-[#5e6785]';
+  return 'text-gray-400';
 };
 
 const getAvatarTheme = (char?: string) => {
-  if (!char) return 'from-blue-500 to-blue-600 shadow-blue-500/20';
-  if (['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'].includes(char)) return 'from-emerald-500 to-emerald-600 shadow-emerald-500/20';
-  if (['병', '정', '사', '오', '丙', '丁', '巳', '午'].includes(char)) return 'from-rose-500 to-rose-600 shadow-rose-500/20';
-  if (['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'].includes(char)) return 'from-amber-500 to-amber-600 shadow-amber-500/20';
-  if (['경', '신', '유', '庚', '辛', '申', '酉'].includes(char)) return 'from-slate-400 to-slate-500 shadow-slate-400/20';
-  if (['임', '계', '해', '자', '壬', '癸', '亥', '子'].includes(char)) return 'from-slate-700 to-slate-800 shadow-slate-800/20';
-  return 'from-blue-500 to-blue-600 shadow-blue-500/20';
+  if (!char) return 'bg-[#f5f2ee] text-[#8f8b86] border border-[#cdc4ba]';
+  if (['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'].includes(char)) return 'bg-[#93d5b1] text-white border border-[#7dc79f]';
+  if (['병', '정', '사', '오', '丙', '丁', '巳', '午'].includes(char)) return 'bg-[#e66d8f] text-white border border-[#da5f82]';
+  if (['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'].includes(char)) return 'bg-[#f0c969] text-white border border-[#e2bb57]';
+  if (['경', '신', '유', '庚', '辛', '申', '酉'].includes(char)) return 'bg-[#fbfdff] text-[#67718e] border border-[#afc9f2]';
+  if (['임', '계', '해', '자', '壬', '癸', '亥', '子'].includes(char)) return 'bg-[#6d7591] text-white border border-[#5e6785]';
+  return 'bg-[#f5f2ee] text-[#8f8b86] border border-[#cdc4ba]';
 };
 
 const SajuText = ({ text }: { text: string }) => {
@@ -154,7 +154,7 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between w-full gap-3">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-11 h-11 rounded-full bg-gradient-to-br text-white flex items-center justify-center text-base font-bold shadow-sm shrink-0 ${avatarTheme}`}>
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold shadow-sm shrink-0 ${avatarTheme}`}>
                         {person.name.charAt(0)}
                       </div>
                       <div className="flex flex-col justify-center overflow-hidden">

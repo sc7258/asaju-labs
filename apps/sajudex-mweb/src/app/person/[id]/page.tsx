@@ -9,6 +9,16 @@ import { useEffect, useState } from 'react';
 import { getChasamManselyeokPageState, type ChasamManselyeokPageState } from '@repo/saju-core';
 import { ChasamManselyeokChartClient } from '@repo/ui/chasam-manselyeok-chart-client';
 
+const getAvatarTheme = (char?: string) => {
+  if (!char) return "bg-[#f5f2ee] text-[#8f8b86] border border-[#cdc4ba]";
+  if (["갑", "을", "인", "묘", "甲", "乙", "寅", "卯"].includes(char)) return "bg-[#93d5b1] text-white border border-[#7dc79f]";
+  if (["병", "정", "사", "오", "丙", "丁", "巳", "午"].includes(char)) return "bg-[#e66d8f] text-white border border-[#da5f82]";
+  if (["무", "기", "진", "술", "축", "미", "戊", "己", "辰", "戌", "丑", "未"].includes(char)) return "bg-[#f0c969] text-white border border-[#e2bb57]";
+  if (["경", "신", "유", "庚", "辛", "申", "酉"].includes(char)) return "bg-[#fbfdff] text-[#67718e] border border-[#afc9f2]";
+  if (["임", "계", "해", "자", "壬", "癸", "亥", "子"].includes(char)) return "bg-[#6d7591] text-white border border-[#5e6785]";
+  return "bg-[#f5f2ee] text-[#8f8b86] border border-[#cdc4ba]";
+};
+
 export default function PersonDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -70,6 +80,9 @@ export default function PersonDetailPage() {
 
 
   const chasam = person.sajuData?.chasam;
+  const bonwonStem = chasam?.bonwon?.[0] || person.sajuIlju?.[0];
+  const avatarTheme = getAvatarTheme(bonwonStem);
+
 
 
 
@@ -115,7 +128,7 @@ export default function PersonDetailPage() {
 
         {/* Profile Card */}
         <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold shrink-0">  
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm ${avatarTheme}`}>  
             {person.name.charAt(0)}
           </div>
           <div className="overflow-hidden">
