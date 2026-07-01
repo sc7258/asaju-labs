@@ -92,14 +92,14 @@ export default function Home() {
             {/* Acquaintance Toggle (Heart Icon) */}
             <button
               onClick={() => setIsAcquaintanceOnly(!isAcquaintanceOnly)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl hover:bg-rose-50 transition-colors active:scale-90"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl hover:bg-[#fcf0f3] transition-colors active:scale-90"
               title={isAcquaintanceOnly ? "지인만 보기 해제" : "지인만 보기"}
             >
               <Heart 
                 className={`w-5 h-5 transition-all duration-300 ${
                   isAcquaintanceOnly 
-                    ? 'text-pink-500 fill-pink-500 scale-110 drop-shadow-sm' 
-                    : 'text-gray-300 hover:text-pink-300'
+                    ? 'text-[#e66d8f] fill-[#e66d8f] scale-110 drop-shadow-sm' 
+                    : 'text-gray-300 hover:text-[#e7849d]'
                 }`} 
               />
             </button>
@@ -108,7 +108,7 @@ export default function Home() {
           {/* Add Button */}
           <Link 
             href="/new" 
-            className="flex-shrink-0 bg-gradient-to-br from-blue-600 to-indigo-600 text-white w-[50px] h-[50px] rounded-2xl flex items-center justify-center hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all shadow-md shadow-blue-600/20"
+            className="flex-shrink-0 bg-[#6d7591] border border-[#5e6785] text-white w-[50px] h-[50px] rounded-2xl flex items-center justify-center hover:bg-[#5e6785] hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all shadow-md shadow-[#6d7591]/20"
           >
             <UserPlus className="w-[22px] h-[22px] ml-0.5" />
           </Link>
