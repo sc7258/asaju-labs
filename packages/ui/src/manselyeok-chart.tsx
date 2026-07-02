@@ -397,24 +397,35 @@ export function ManselyeokChart({
     accentTone === "boncha"
       ? "shadow-[0_16px_40px_rgba(65,110,170,0.15)]"
       : "shadow-[0_8px_32px_rgba(0,0,0,0.05)]";
-  const boardClass = useBoardBackground
-    ? "bg-white/40 backdrop-blur-xl"
-    : "bg-white/50 backdrop-blur-xl";
+  
+  const isLeapMonth = input.isLeapMonth === true;
+  const boardClass = isLeapMonth
+    ? "bg-gradient-to-br from-[#f8f9fc]/80 to-[#f1f4f9]/80 backdrop-blur-xl shadow-[inset_0_0_40px_rgba(109,117,145,0.06)]"
+    : useBoardBackground
+      ? "bg-white/40 backdrop-blur-xl"
+      : "bg-white/50 backdrop-blur-xl";
   const topSectionClass = accentTone === "boncha"
     ? "bg-white/60"
-    : useBoardBackground
-      ? "bg-white/40"
-      : "bg-white/50";
+    : isLeapMonth 
+      ? "bg-white/30"
+      : useBoardBackground
+        ? "bg-white/40"
+        : "bg-white/50";
   const lowerSectionClass = accentTone === "boncha"
     ? "bg-white/40"
-    : useBoardBackground
-      ? "bg-white/20"
-      : "bg-white/30";
+    : isLeapMonth
+      ? "bg-transparent"
+      : useBoardBackground
+        ? "bg-white/20"
+        : "bg-white/30";
 
   return (
     <section
       className={`relative select-none overflow-hidden rounded-3xl border ${borderClass} ${shadowClass} ${boardClass}`}
     >
+      {isLeapMonth && (
+         <div className="pointer-events-none absolute -left-10 -top-10 z-0 h-40 w-40 rounded-full bg-[#b8c2d6] opacity-20 blur-3xl mix-blend-multiply"></div>
+      )}
       {onToggleExpanded ? (
         <div className="absolute right-1.5 top-1.5 z-[2] sm:right-2 sm:top-2">
           <ExpandToggleButton
